@@ -13,6 +13,7 @@ Something needs further discussion:
 (1) o_Pa = Pa[counter] can be modify to o_Pa = Pa[0] and using shift to reduce the unnecessary mux area
 Yes. However we need another 256bit to save the correct Pa, because when shifting, the Pa cannot be used by the submodule directly
 I don't know which area is smaller. 
+may be Pa use counter, Pab use shift reg
 */
 
 `include "ECCDefine.v"
@@ -129,10 +130,10 @@ module Wrapper(
 
         n_mode = mode;
         for (ite = 0; ite < 2; i = i + 1) begin
-            n_a[i]   <= a[i];
-            n_Pb[i]  <= Pb[i];
-            n_Pa[i]  <= Pa[i];
-            n_Pab[i] <= Pab[i];
+            n_a[i]   = a[i];
+            n_Pb[i]  = Pb[i];
+            n_Pa[i]  = Pa[i];
+            n_Pab[i] = Pab[i];
         end
         n_prime = prime;
 
