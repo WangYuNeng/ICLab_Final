@@ -1,3 +1,18 @@
+/* 
+Warning: should modify the following before testing
+(1) variables can't be named started by a number, so 32BITS, 64BITS, ... these parameters are illegal
+(2) can't write MAX_REG'd1, just simply write 1 should work
+(3) missing input prime
+(4) points should contain x-cordinate and y-cordinate
+(5) i/o ports list should not ended with ";" but ","
+(6) declared as "io_state" and "n_io_state", but using "state" and "n_state" in the code
+*/
+
+/*
+Something needs further discussion:
+(1) o_Pa = Pa[counter] can be modify to o_Pa = Pa[0] and using shift to reduce the unnecessary mux area
+*/
+
 `include "ECCDefine.v"
 module Wrapper(
     // clock reset signal
