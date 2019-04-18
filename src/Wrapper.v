@@ -1,11 +1,11 @@
 /* 
 Warning: should modify the following before testing
-V (1) variables can't be named started by a number, so 32BITS, 64BITS, ... these parameters are illegal
-V (2) can't write MAX_REG'd1, just simply write 1 should work
-V (3) missing input prime
-V (4) points should contain x-cordinate and y-cordinate
-V (5) i/o ports list should not ended with ";" but ","
-v (6) declared as "io_state" and "n_io_state", but using "state" and "n_state" in the code
+naming is a little bit ambiguous now,
+I don't know the exact meaning of variables now
+input should be: a prime (p), a base point P=(x, y), a multiplier (a) to compute aP, a point from another device (bP) and valid signal
+output should be: points aP and abP and valid signal
+So what is "P" means? the meaning of "p" and "P" are messing together
+Also, "a", "ax", "ay" are somehow messing together.
 */
 
 /*
@@ -29,9 +29,9 @@ module Wrapper(
     
     // input data
     input i_P,
+    input i_prime,
     input i_ax,
     input i_ay,
-    input i_prime,
     input i_Pbx,
     input i_Pby,
 
