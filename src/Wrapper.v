@@ -28,10 +28,10 @@ module Wrapper(
     input i_mode,
     
     // input data
-    input i_P,
+    input i_Px,
+    input i_Py,
     input i_prime,
-    input i_ax,
-    input i_ay,
+    input i_a,
     input i_Pbx,
     input i_Pby,
 
@@ -65,8 +65,8 @@ module Wrapper(
     reg [1:0] mode;
     reg [1:0] n_mode;
     // 0 -> x, 1 -> y
-    reg [MAX_BITS - 1:0] P, a [1:0], Pb [1:0], prime;
-    reg [MAX_BITS - 1:0] n_P, n_a [1:0], n_Pb [1:0], n_prime;
+    reg [MAX_BITS - 1:0] P [1:0], a, Pb [1:0], prime;
+    reg [MAX_BITS - 1:0] n_P [1:0], n_a, n_Pb [1:0], n_prime;
     reg p_a_valid, n_p_a_valid;
     reg pb_valid, n_pb_valid;
 
@@ -93,9 +93,9 @@ module Wrapper(
         if ( !rst ) begin
             io_state <= IDLE;
             mode  <= BITS32;
-            P   <= 0;
+            a <= 0;
             for (ite = 0; ite < 2; i = i + 1) begin
-                a[i]   <= 0;
+                P[i]   <= 0;
                 Pb[i]  <= 0;
                 Pa[i]  <= 0;
                 Pab[i] <= 0;
@@ -109,8 +109,9 @@ module Wrapper(
         end else begin
             io_state <= n_io_state;
             mode <= n_mode;
+            a <= n_a;
             for (ite = 0; ite < 2; i = i + 1) begin
-                a[i]   <= n_a[i];
+                P[i]   <= n_P[i];
                 Pb[i]  <= n_Pb[i];
                 Pa[i]  <= n_Pa[i];
                 Pab[i] <= n_Pab[i];
@@ -129,8 +130,9 @@ module Wrapper(
         n_io_state = io_state;
 
         n_mode = mode;
+        n_a = a;
         for (ite = 0; ite < 2; i = i + 1) begin
-            n_a[i]   = a[i];
+            n_P[i] = P[i];
             n_Pb[i]  = Pb[i];
             n_Pa[i]  = Pa[i];
             n_Pab[i] = Pab[i];
@@ -189,9 +191,9 @@ module Wrapper(
             end
             P_A_IN: begin
                 n_counter = counter - 1;
-                n_P = { P[MAX_BITS - 1:1], i_P };
-                n_a[0] = { a[0][MAX_BITS - 1:1], i_ax };
-                n_a[1] = { a[1][MAX_BITS - 1:1], i_ay };
+                n_P[0] = { P[0][MAX_BITS - 1:1], i_Px };
+                n_P[1] = { P[1][MAX_BITS - 1:1], i_Py };
+                n_a = { a[MAX_BITS - 1:1], i_a };
                 n_prime = { prime[MAX_BITS - 1:1], i_prime }
 
                 if ( counter == 0 ) begin
