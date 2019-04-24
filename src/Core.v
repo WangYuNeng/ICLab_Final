@@ -1,24 +1,23 @@
 module Core(
     input clk,
     input rst,
-    input [MAX_BITS-1:0] i_P [1:0],
-    input [MAX_BITS-1:0] i_a,
+    input [MAX_BITS-1:0] i_Px,
+    input [MAX_BITS-1:0] i_Py,
     input [MAX_BITS-1:0] i_prime,
-    input [MAX_BITS-1:0] i_Pb [1:0],
-    input i_p_a_valid,
-    input i_pb_valid,
-    output [MAX_BITS-1:0] o_Pa [1:0],
-    output [MAX_BITS-1:0] o_Pab [1:0],
-    output o_pa_valid,
-    output o_pab_valid
+    input [MAX_BITS-1:0] i_a,
+    input [MAX_BITS-1:0] i_b,
+    input [MAX_BITS-1:0] i_m,
+    input [MAX_BITS-1:0] i_nPx,
+    input [MAX_BITS-1:0] i_nPy,
+    input i_m_P_valid,
+    input i_nP_valid,
+    output [MAX_BITS-1:0] o_mPx,
+    output [MAX_BITS-1:0] o_mPy,
+    output [MAX_BITS-1:0] o_mnPx,
+    output [MAX_BITS-1:0] o_mnPy,
+    output o_mP_valid,
+    output o_mnP_valid
 );
-
-    assign o_Pa[0] = Pa[0];
-    assign o_Pa[1] = Pa[1];
-    assign o_Pab[0] = Pab[0];
-    assign o_Pab[1] = Pab[1];
-    assign o_pa_valid = pa_valid;
-    assign o_pab_valid = pab_valid;
     
 
     // i_P, i_a, i_prime, i_Pb can use directly, i_valids will keep their value, too
@@ -26,38 +25,49 @@ module Core(
     // state control signal
     reg [1:0] state, n_state;
     localparam IDLE = 2'b00;
-    localparam AP = 2'b01;
-    localparam ABP = 2'b10;
+    localparam MP = 2'b01;
+    localparam MNP = 2'b10;
 
     // output signal
-    reg [MAX_BITS-1:0] Pa [1:0], Pab [1:0];
-    reg [MAX_BITS-1:0] n_Pa [1:0], n_Pab [1:0];
-    reg pa_valid, pab_valid;
-    reg n_pa_valid, n_pab_valid;
+    reg [MAX_BITS-1:0] mPx, mPy, mnPx, mnPy;
+    reg [MAX_BITS-1:0] n_mPx, n_mPy, n_mnPx, n_mnPy;
+    reg mP_valid, mnP_valid;
+    reg n_mP_valid, n_mnP_valid;
+
+    assign o_nPx = nPx;
+    assign o_nPy = nPy;
+    assign o_mnPx = mnPx;
+    assign o_mnPy = mnPy;
+    assign o_mP_valid = mP_valid;
+    assign o_mnP_valid = mnP_valid;
 
     // signal for submodule
-    reg [MAX_BITS-1:0] daa_point [1:0], daa_prime, daa_mul, daa_output [1:0];
+    wire [MAX_BITS-1:0] daa_a, daa_b;
+    reg [MAX_BITS-1:0] daa_pointx, daa_pointy, daa_prime, daa_mul, daa_outputx, daa_outputy;
     reg daa_valid, daa_finished;
+
+    assign daa_a = i_a;
+    assign daa_b = i_b;
 
     integer i;
 
     always@(posedge clk or negedge rst) begin
         if ( !rst ) begin
             state <= IDLE;
-            for (i = 0; i < 2; i = i + 1) begin
-                Pa[i] <= 0;
-                Pab[i] <= 0;
-            end
-            pa_valid <= 0;
-            pab_valid <= 0;
+            mPx <= 0;
+            mPy <= 0;
+            mnPx <= 0;
+            mnPy <= 0;
+            mP_valid <= 0;
+            mnP_valid <= 0;
         end else begin
             state <= n_state;
-            for (i = 0; i < 2; i = i + 1) begin
-                Pa[i] <= n_Pa[i];
-                Pab[i] <= n_Pab[i];
-            end
-            pa_valid <= n_pa_valid;
-            pab_valid <= n_pab_valid;
+            mPx <= n_mPx;
+            mPy <= n_mPy;
+            mnPx <= n_mnPx;
+            mnPy <= n_mnPy;
+            mP_valid <= n_mP_valid;
+            mnP_valid <= n_mnP_valid;
         end
     end
 
@@ -65,52 +75,53 @@ module Core(
         
         n_state = state;
 
-        for (i = 0; i < 2; i = i + 1) begin
-            n_Pa[i] = Pa[i];
-            n_Pab[i] = Pab[i];
-            daa_point[i] = 0;
-        end
+        n_mPx = mPx;
+        n_mPy = mPy;
+        n_mnPx = mnPx;
+        n_mnPy = mnPy;
+        daa_pointx = 0;
+        daa_pointy = 0;
 
         data_valid = 0;
         data_prime = 0;
         data_mul = 0;
 
-        n_pa_valid = pa_valid;
-        n_pab_valid = pab_valid;
+        n_mP_valid = mP_valid;
+        n_mnP_valid = mnP_valid;
 
         case ( state )
             IDLE: begin
-                if ( i_p_a_valid ) begin
-                    n_state = AP
+                if ( i_m_P_valid ) begin
+                    n_state = MP
                 end
-                if ( i_pb_valid ) begin
-                    n_state = ABP
+                if ( i_nP_valid ) begin
+                    n_state = MNP
                 end
             end 
-            AP: begin
+            MP: begin
                 daa_valid = 1;
-                daa_point[0] = i_P[0];
-                daa_point[1] = i_P[1];
+                daa_pointx = i_Px;
+                daa_pointy = i_Py;
                 daa_prime = i_prime;
-                daa_mul = i_a;
+                daa_mul = i_m;
                 if ( daa_finished ) begin
                     n_state = IDLE;
-                    n_Pa[0] = daa_output[0];
-                    n_Pa[0] = daa_output[1];
-                    n_pa_valid = 1;
+                    n_mPx = daa_outputx;
+                    n_mPy = daa_outputy;
+                    n_mP_valid = 1;
                 end
             end
-            ABP: begin
+            MNP: begin
                 daa_valid = 1;
-                daa_point[0] = i_Pb[0];
-                daa_point[1] = i_Pb[1];
+                daa_pointx = i_nPx;
+                daa_pointy = i_nPy;
                 daa_prime = i_prime;
-                daa_mul = i_a;
+                daa_mul = i_m;
                 if ( daa_finished ) begin
                     n_state = IDLE;
-                    n_Pab[0] = daa_output[0];
-                    n_Pab[0] = daa_output[1];
-                    n_pab_valid = 1;
+                    n_mnPx = daa_outputx;
+                    n_mnPy = daa_outputy;
+                    n_mnP_valid = 1;
                 end
             end
             default: n_state = state;
@@ -119,12 +130,18 @@ module Core(
     end
 
     double_and_add_always daa(
+        clk,
+        rst,
         daa_valid,
-        daa_point,
+        daa_pointx,
+        daa_pointy,
         daa_prime,
+        daa_a,
+        daa_b,
         daa_mul,
         daa_finished,
-        daa_output
+        daa_outputx,
+        daa_outputy
     );
 
 endmodule

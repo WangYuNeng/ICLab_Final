@@ -1,19 +1,9 @@
-/* 
-Warning: should modify the following before testing
-naming is a little bit ambiguous now,
-I don't know the exact meaning of variables now
-input should be: a prime (p), a base point P=(x, y), a multiplier (a) to compute aP, a point from another device (bP) and valid signal
-output should be: points aP and abP and valid signal
-So what is "P" means? the meaning of "p" and "P" are messing together
-Also, "a", "ax", "ay" are somehow messing together.
-*/
-
 /*
-Something needs further discussion:
-(1) o_Pa = Pa[counter] can be modify to o_Pa = Pa[0] and using shift to reduce the unnecessary mux area
-Yes. However we need another 256bit to save the correct Pa, because when shifting, the Pa cannot be used by the submodule directly
-I don't know which area is smaller. 
-may be Pa use counter, Pab use shift reg
+a, b = coefficiont of EC
+Prime
+m, n = multiplier
+Px, Py = coordinate of point
+
 */
 
 `include "ECCDefine.v"
@@ -23,104 +13,113 @@ module Wrapper(
     input rst,
 
     // input control signal
-    input i_p_a_valid,
-    input i_pb_valid,
+    input i_m_P_valid,
+    input i_nP_valid,
     input i_mode,
     
     // input data
+    input i_a,
+    input i_b,
+    input i_prime,
     input i_Px,
     input i_Py,
-    input i_prime,
-    input i_a,
-    input i_Pbx,
-    input i_Pby,
+    input i_m,
+    input i_nPx,
+    input i_nPy,
 
     //output control signal
-    output reg o_Pa_valid,
-    output reg o_Pab_valid,
+    output reg o_mP_valid,
+    output reg o_mnP_valid,
 
     // output data
-    output o_Pax,
-    output o_Pay,
-    output o_Pabx,
-    output o_Paby
+    output o_mPx,
+    output o_mPy,
+    output o_mnPx,
+    output o_mnpy
 );
 
 /* In/Out process
-1. #0 -> i_p_a_valid 
+1. #0 -> i_m_P_valid 
 2. #1 -> i_mode (MSB first)
-3. #3 -> i_P and i_a; (MSB first)
-4. #3+mode+x, x >= 1 -> i_Pb
-5. o_Pa_valid( or o_Pab_valid) and their MSB transmit at the same cycle, which is different from input signal
+3. #3 -> i_P, i_a, i_b, i_m; (MSB first)
+4. #3+mode+x, x >= 1 -> i_nP
+5. o_mP_valid( or o_mnP_valid) and their MSB transmit at the same cycle, which is different from input signal
 */
 
-
-    // output signal and data
-    assign o_Pax = Pa[0][counter];
-    assign o_Pay = Pa[1][counter];
-    assign o_Pabx = Pab[0][counter];
-    assign o_Paby = Pab[1][counter];
 
     // input data
     reg [1:0] mode;
     reg [1:0] n_mode;
     // 0 -> x, 1 -> y
-    reg [MAX_BITS - 1:0] P [1:0], a, Pb [1:0], prime;
-    reg [MAX_BITS - 1:0] n_P [1:0], n_a, n_Pb [1:0], n_prime;
-    reg p_a_valid, n_p_a_valid;
-    reg pb_valid, n_pb_valid;
+    reg [MAX_BITS - 1:0] Px, Py, m, nPx, nPy, prime, a, b;
+    reg [MAX_BITS - 1:0] n_Px, n_Py, n_m, n_nPx, n_nPy, n_prime, n_a, n_b;
+    reg m_P_valid, n_m_P_valid;
+    reg nP_valid, n_nP_valid;
 
     // output data 
-    reg [MAX_BITS - 1:0] Pa [1:0], Pab [1:0];
-    reg [MAX_BITS - 1:0] n_Pa [1:0], n_Pab [1:0];
-    reg pa_valid, n_pa_valid;
-    reg pab_valid, n_pab_valid;
+    reg [MAX_BITS - 1:0] mPx, mPy, mnPx, mnPy;
+    reg [MAX_BITS - 1:0] n_mPx, n_mPy, n_mnPx, n_mnPy;
+    reg mP_valid, n_mP_valid;
+    reg mnP_valid, n_mnP_valid;
+
+    // output signal and data
+    assign o_mPx = mPx[counter];
+    assign o_mPy = mPy[counter];
+    assign o_mnPx = mnPx[counter];
+    assign o_mnPy = mnPy[counter];
 
     // io control signal
     reg [2:0] io_state, n_io_state;
     localparam IDLE    = 3'b000;
     localparam MODE_IN = 3'b001
-    localparam P_A_IN  = 3'b010;
-    localparam PB_IN   = 3'b011;
-    localparam PA_OUT  = 3'b100;
-    localparam PAB_OUT = 3'b101;
+    localparam MP_IN  = 3'b010;
+    localparam NP_IN   = 3'b011;
+    localparam MP_OUT  = 3'b100;
+    localparam MNP_OUT = 3'b101;
 
     reg [MAX_REG:0] counter, n_counter;
-    integer ite;
 
 
     always@( posedge clk or negedge rst ) begin
         if ( !rst ) begin
             io_state <= IDLE;
             mode  <= BITS32;
+            m <= 0;
             a <= 0;
-            for (ite = 0; ite < 2; i = i + 1) begin
-                P[i]   <= 0;
-                Pb[i]  <= 0;
-                Pa[i]  <= 0;
-                Pab[i] <= 0;
-            end
+            b <= 0;
+            Px   <= 0;
+            Py   <= 0;
+            nPx  <= 0;
+            nPy  <= 0;
+            mPx  <= 0;
+            mPy  <= 0;
+            mnPx <= 0;
+            mnPy <= 0;
             prime <= 0;
-            p_a_valid <= 0;
-            pb_valid <= 0;
-            pa_valid <= 0;
-            pab_valid <= 0;
+            m_P_valid <= 0;
+            nP_valid <= 0;
+            mP_valid <= 0;
+            mnP_valid <= 0;
             counter <= 0;
         end else begin
             io_state <= n_io_state;
             mode <= n_mode;
+            m <= n_m;
             a <= n_a;
-            for (ite = 0; ite < 2; i = i + 1) begin
-                P[i]   <= n_P[i];
-                Pb[i]  <= n_Pb[i];
-                Pa[i]  <= n_Pa[i];
-                Pab[i] <= n_Pab[i];
-            end
+            b <= n_b;
+            Px   <= n_Px;
+            Py   <= n_Py;
+            nPx  <= n_nPx;
+            nPy  <= n_nPy;
+            mPx  <= n_mPx;
+            mPy  <= n_mPy;
+            mnPx <= n_mnPx;
+            mnPy <= n_mnPy;
             prime <= n_prime;
-            p_a_valid <= n_p_a_valid;
-            pb_valid <= n_pb_valid;
-            pa_valid <= n_pa_valid;
-            pab_valid <= n_pab_valid;
+            m_P_valid <= n_m_P_valid;
+            nP_valid <= n_nP_valid;
+            mP_valid <= n_mP_valid;
+            mnP_valid <= n_mnP_valid;
             counter <= n_counter;
         end
     end
@@ -130,33 +129,37 @@ module Wrapper(
         n_io_state = io_state;
 
         n_mode = mode;
+        n_m = m;
         n_a = a;
-        for (ite = 0; ite < 2; i = i + 1) begin
-            n_P[i] = P[i];
-            n_Pb[i]  = Pb[i];
-            n_Pa[i]  = Pa[i];
-            n_Pab[i] = Pab[i];
-        end
+        n_b = b;
+        n_Px   = Px;
+        n_Py   = Py;
+        n_nPx  = nPx;
+        n_nPy  = nPy;
+        n_mPx  = mPx;
+        n_mPy  = mPy;
+        n_mnPx = mnPx;
+        n_mnPy = mnPy;
         n_prime = prime;
 
-        n_p_a_valid = p_a_valid;
-        n_pb_valid = pb_valid;
-        n_pa_valid = pa_valid;
-        n_pab_valid = pab_valid;
+        n_m_P_valid = m_P_valid;
+        n_nP_valid = nP_valid;
+        n_mP_valid = mP_valid;
+        n_mnP_valid = mnP_valid;
 
-        o_Pa_valid = 0;
-        o_Pab_valid = 0;
+        o_mP_valid = 0;
+        o_mnP_valid = 0;
 
         n_counter = counter;
 
         case ( io_state )
             IDLE: begin
 
-                if ( pa_valid ) begin
-                    n_io_state = PA_OUT;
+                if ( mP_valid ) begin
+                    n_io_state = MP_OUT;
                 end
-                if ( pab_valid ) begin
-                    n_io_state = PAB_OUT;
+                if ( mnP_valid ) begin
+                    n_io_state = MNP_OUT;
                 end
 
                 case ( mode )
@@ -166,10 +169,10 @@ module Wrapper(
                     BITS256: n_counter =  255;
                 endcase
 
-                if ( i_pb_valid ) begin
-                    n_io_state = PB_IN;
+                if ( i_nP_valid ) begin
+                    n_io_state = NP_IN;
                 end
-                if ( i_p_a_valid ) begin
+                if ( i_m_P_valid ) begin
                     n_io_state = MODE_IN;
                     n_counter = 1; // not sure if this is ok
                 end
@@ -180,7 +183,7 @@ module Wrapper(
                 n_mode = {mode[0], i_mode};
 
                 if ( counter == 0 ) begin
-                    n_io_state = P_A_IN;
+                    n_io_state = MP_IN;
                     case ( mode )
                         BITS32: n_counter =  31;
                         BITS64: n_counter =  63;
@@ -189,41 +192,43 @@ module Wrapper(
                     endcase
                 end
             end
-            P_A_IN: begin
+            MP_IN: begin
                 n_counter = counter - 1;
-                n_P[0] = { P[0][MAX_BITS - 1:1], i_Px };
-                n_P[1] = { P[1][MAX_BITS - 1:1], i_Py };
+                n_Px = { Px[MAX_BITS - 1:1], i_Px };
+                n_Py = { Py[MAX_BITS - 1:1], i_Py };
+                n_m = { m[MAX_BITS - 1:1], i_m };
                 n_a = { a[MAX_BITS - 1:1], i_a };
+                n_b = { a[MAX_BITS - 1:1], i_b };
                 n_prime = { prime[MAX_BITS - 1:1], i_prime }
 
                 if ( counter == 0 ) begin
-                    n_p_a_valid = 1;
+                    n_m_P_valid = 1;
                     n_io_state = IDLE;
                 end
             end 
-            PB_IN: begin
+            NP_IN: begin
                 n_counter = counter - 1;
-                n_Pb[0] = { Pb[0][MAX_BITS - 1:1], i_Pbx };
-                n_Pb[1] = { Pb[1][MAX_BITS - 1:1], i_Pby };
+                n_nPx = { nPx[MAX_BITS - 1:1], i_nPx };
+                n_nPy = { nPy[MAX_BITS - 1:1], i_nPy };
 
                 if ( counter == 0 ) begin
-                    n_pb_valid = 1;
+                    n_nP_valid = 1;
                     n_io_state = IDLE;
                 end
             end
-            PA_OUT: begin
+            MP_OUT: begin
                 n_counter = counter - 1;
 
-                o_Pa_valid = 1;
+                o_mP_valid = 1;
 
                 if ( counter == 0 ) begin
                     n_io_state = IDLE;
                 end
             end
-            PAB_OUT: begin
+            MNP_OUT: begin
                 n_counter = counter - 1;
 
-                o_Pab_valid = 1;
+                o_mnP_valid = 1;
 
                 if ( counter == 0 ) begin
                     n_io_state = IDLE;
@@ -236,18 +241,24 @@ module Wrapper(
     end
 
     Core core(
-        clk,
-        rst,
-        P,
-        a,
-        prime,
-        Pb,
-        n_Pa,
-        n_Pab,
-        p_a_valid,
-        pb_valid,
-        n_pa_valid,
-        n_pab_valid
+        .clk(clk),
+        .rst(rst),
+        .i_Px(Px),
+        .i_Py(Py),
+        .i_prime(prime),
+        .i_a(a),
+        .i_b(b),
+        .i_m(m),
+        .i_nPx(nPx),
+        .i_nPy(nPy),
+        .i_m_P_valid(m_P_valid),
+        .i_nP_valid(nP_valid),
+        .o_mPx(n_mPx),
+        .o_mPy(n_mPy),
+        .o_mnPx(n_mnPx),
+        .o_mnPy(n_mnPy),
+        .o_mP_valid(mP_valid),
+        .o_mnP_valid(mnP_valid)
     );
 
 endmodule // Wrapper
