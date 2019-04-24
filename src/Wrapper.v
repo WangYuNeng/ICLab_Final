@@ -3,10 +3,8 @@ a, b = coefficiont of EC
 Prime
 m, n = multiplier
 Px, Py = coordinate of point
-
 */
 
-`include "ECCDefine.v"
 module Wrapper(
     // clock reset signal
     input clk,
@@ -38,6 +36,7 @@ module Wrapper(
     output o_mnPy
 );
 
+`include "ECCDefine.v"
 /* In/Out process
 1. #0 -> i_m_P_valid 
 2. #1 -> i_mode (MSB first)
@@ -58,9 +57,13 @@ module Wrapper(
 
     // output data 
     reg [MAX_BITS - 1:0] mPx, mPy, mnPx, mnPy;
-    reg [MAX_BITS - 1:0] n_mPx, n_mPy, n_mnPx, n_mnPy;
-    reg mP_valid, n_mP_valid;
-    reg mnP_valid, n_mnP_valid;
+    wire [MAX_BITS - 1:0] n_mPx, n_mPy, n_mnPx, n_mnPy;
+    reg mP_valid;
+    wire n_mP_valid;
+    reg mnP_valid;
+    wire n_mnP_valid;
+
+    reg [MAX_REG:0] counter, n_counter;
 
     // output signal and data
     assign o_mPx = mPx[counter];
@@ -71,14 +74,11 @@ module Wrapper(
     // io control signal
     reg [2:0] io_state, n_io_state;
     localparam IDLE    = 3'b000;
-    localparam MODE_IN = 3'b001
+    localparam MODE_IN = 3'b001;
     localparam MP_IN  = 3'b010;
     localparam NP_IN   = 3'b011;
     localparam MP_OUT  = 3'b100;
     localparam MNP_OUT = 3'b101;
-
-    reg [MAX_REG:0] counter, n_counter;
-
 
     always@( posedge clk or negedge rst ) begin
         if ( !rst ) begin
@@ -136,16 +136,10 @@ module Wrapper(
         n_Py   = Py;
         n_nPx  = nPx;
         n_nPy  = nPy;
-        n_mPx  = mPx;
-        n_mPy  = mPy;
-        n_mnPx = mnPx;
-        n_mnPy = mnPy;
         n_prime = prime;
 
         n_m_P_valid = m_P_valid;
         n_nP_valid = nP_valid;
-        n_mP_valid = mP_valid;
-        n_mnP_valid = mnP_valid;
 
         o_mP_valid = 0;
         o_mnP_valid = 0;
@@ -194,12 +188,12 @@ module Wrapper(
             end
             MP_IN: begin
                 n_counter = counter - 1;
-                n_Px = { Px[MAX_BITS - 1:1], i_Px };
-                n_Py = { Py[MAX_BITS - 1:1], i_Py };
-                n_m = { m[MAX_BITS - 1:1], i_m };
-                n_a = { a[MAX_BITS - 1:1], i_a };
-                n_b = { a[MAX_BITS - 1:1], i_b };
-                n_prime = { prime[MAX_BITS - 1:1], i_prime }
+                n_Px = { Px[MAX_BITS - 2:0], i_Px };
+                n_Py = { Py[MAX_BITS - 2:0], i_Py };
+                n_m = { m[MAX_BITS - 2:0], i_m };
+                n_a = { a[MAX_BITS - 2:0], i_a };
+                n_b = { b[MAX_BITS - 2:0], i_b };
+                n_prime = { prime[MAX_BITS - 2:0], i_prime };
 
                 if ( counter == 0 ) begin
                     n_m_P_valid = 1;
@@ -208,8 +202,8 @@ module Wrapper(
             end 
             NP_IN: begin
                 n_counter = counter - 1;
-                n_nPx = { nPx[MAX_BITS - 1:1], i_nPx };
-                n_nPy = { nPy[MAX_BITS - 1:1], i_nPy };
+                n_nPx = { nPx[MAX_BITS - 2:0], i_nPx };
+                n_nPy = { nPy[MAX_BITS - 2:0], i_nPy };
 
                 if ( counter == 0 ) begin
                     n_nP_valid = 1;
@@ -235,7 +229,7 @@ module Wrapper(
                 end
             end
             default: begin
-                n_io_state = state;
+                n_io_state = io_state;
             end
         endcase
     end
@@ -257,8 +251,8 @@ module Wrapper(
         .o_mPy(n_mPy),
         .o_mnPx(n_mnPx),
         .o_mnPy(n_mnPy),
-        .o_mP_valid(mP_valid),
-        .o_mnP_valid(mnP_valid)
+        .o_mP_valid(n_mP_valid),
+        .o_mnP_valid(n_mnP_valid)
     );
 
 endmodule // Wrapper
