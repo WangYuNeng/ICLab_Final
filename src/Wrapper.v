@@ -35,7 +35,7 @@ module Wrapper(
     output o_mPx,
     output o_mPy,
     output o_mnPx,
-    output o_mnpy
+    output o_mnPy
 );
 
 /* In/Out process
