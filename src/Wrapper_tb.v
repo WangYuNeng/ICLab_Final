@@ -26,7 +26,7 @@ module Wrapper_tb;
     wire o_mPx, o_mPy, o_mnPx, o_mnpy;
 
     // tb
-    integer i, j, k, num, error;
+    integer i, j, k, num, error, mp_counter, mnp_counter, clk_counter;
     reg stop;
 
     reg [BIT-1:0] data_input  [0:7];
@@ -41,6 +41,9 @@ module Wrapper_tb;
 	    clk = 1'b1;
         rst = 1'b1;
 	    error = 0;
+        mp_counter = 0;
+        mnp_counter = 0;
+        clk_counter = 0;
 	    stop = 0;
         i_m_P_valid = 0;
         i_nP_valid = 0;
@@ -103,19 +106,26 @@ module Wrapper_tb;
     end
 
     always@(negedge clk ) begin
+        clk_counter <= clk_counter + 1;
         if (o_mP_valid) begin
+            mp_counter <= mp_counter + 1;
             if(o_mPx !== data_golden[0][i]) begin
+                $display("mPx[0] error at %d, clk %d\n", mp_counter, clk_counter);
                 error <= error + 1;
             end
             if(o_mPy !== data_golden[1][i]) begin
+                $display("mPx[1] error at %d, clk %d\n", mp_counter, clk_counter);
                 error <= error + 1;
             end
         end
         if (o_mnP_valid) begin
+            mnp_counter <= mnp_counter + 1;
             if(o_mnPx !== data_golden[2][j]) begin
+                $display("mnPx[0] error at %d, clk %d\n", mp_counter, clk_counter);
                 error <= error + 1;
             end
             if(o_mnpy !== data_golden[3][j]) begin
+                $display("mnPx[1] error at %d, clk %d\n", mp_counter, clk_counter);
                 error <= error + 1;
             end
         end

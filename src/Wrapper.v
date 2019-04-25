@@ -57,32 +57,45 @@ module Wrapper(
 
     // output data 
     reg [MAX_BITS - 1:0] mPx, mPy, mnPx, mnPy;
-    wire [MAX_BITS - 1:0] n_mPx, n_mPy, n_mnPx, n_mnPy;
-    reg mP_valid;
-    wire n_mP_valid;
-    reg mnP_valid;
-    wire n_mnP_valid;
+    reg [MAX_BITS - 1:0] n_mPx, n_mPy, n_mnPx, n_mnPy;
+    reg mP_valid, n_mP_valid;
+    reg mnP_valid, n_mnP_valid;
 
-    reg [MAX_REG:0] counter, n_counter;
+    reg [MAX_REG:0] mp_counter, n_mp_counter;
+    reg [MAX_REG:0] mnp_counter, n_mnp_counter;
 
     // output signal and data
-    assign o_mPx = mPx[counter];
-    assign o_mPy = mPy[counter];
-    assign o_mnPx = mnPx[counter];
-    assign o_mnPy = mnPy[counter];
+    assign o_mPx = mPx[mp_counter];
+    assign o_mPy = mPy[mp_counter];
+    assign o_mnPx = mnPx[mnp_counter];
+    assign o_mnPy = mnPy[mnp_counter];
 
     // io control signal
-    reg [2:0] io_state, n_io_state;
-    localparam IDLE    = 3'b000;
-    localparam MODE_IN = 3'b001;
-    localparam MP_IN  = 3'b010;
-    localparam NP_IN   = 3'b011;
-    localparam MP_OUT  = 3'b100;
-    localparam MNP_OUT = 3'b101;
+    reg [1:0] mp_state, n_mp_state;
+    reg [1:0] mnp_state, n_mnp_state;
+    reg [1:0] cal_state, n_cal_state;
+    reg mp_flag, n_mp_flag, cal_flag, n_cal_flag; // 0->mp, mnp both undo, 1->finish mp
+    localparam IDLE    = 2'b00;
+    localparam MODE_IN = 2'b01;
+    localparam MP_IN  = 2'b10;
+    localparam MP_OUT  = 2'b11;
+
+    localparam NP_IN   = 2'b10;
+    localparam MNP_OUT = 2'b11;
+    localparam MNP_FINISH = 2'b01;
+
+    localparam MP_CAL = 2'b01;
+    localparam MNP_CAL = 2'b10;
+    localparam DONT_CAL = 2'b11;
+
 
     always@( posedge clk or negedge rst ) begin
         if ( !rst ) begin
-            io_state <= IDLE;
+            mp_state <= IDLE;
+            mnp_state <= IDLE;
+            cal_state <= IDLE;
+            mp_flag <= 0;
+            cal_flag <= 0;
             mode  <= BITS32;
             m <= 0;
             a <= 0;
@@ -100,9 +113,14 @@ module Wrapper(
             nP_valid <= 0;
             mP_valid <= 0;
             mnP_valid <= 0;
-            counter <= 0;
+            mp_counter <= 0;
+            mnp_counter <= 0;
         end else begin
-            io_state <= n_io_state;
+            mp_state <= n_mp_state;
+            mnp_state <= n_mnp_state;
+            cal_state <= n_cal_state;
+            mp_flag <= n_mp_flag;
+            cal_flag <= n_cal_flag;
             mode <= n_mode;
             m <= n_m;
             a <= n_a;
@@ -120,13 +138,15 @@ module Wrapper(
             nP_valid <= n_nP_valid;
             mP_valid <= n_mP_valid;
             mnP_valid <= n_mnP_valid;
-            counter <= n_counter;
+            mp_counter <= n_mp_counter;
+            mnp_counter <= n_mnp_counter;
         end
     end
 
     always@(*) begin
 
-        n_io_state = io_state;
+        n_mp_state = mp_state;
+        n_mp_flag = mp_flag;
 
         n_mode = mode;
         n_m = m;
@@ -134,60 +154,50 @@ module Wrapper(
         n_b = b;
         n_Px   = Px;
         n_Py   = Py;
-        n_nPx  = nPx;
-        n_nPy  = nPy;
         n_prime = prime;
 
         n_m_P_valid = m_P_valid;
-        n_nP_valid = nP_valid;
 
         o_mP_valid = 0;
-        o_mnP_valid = 0;
 
-        n_counter = counter;
+        n_mp_counter = mp_counter;
 
-        case ( io_state )
+        case ( mp_state )
             IDLE: begin
 
-                if ( mP_valid ) begin
-                    n_io_state = MP_OUT;
-                end
-                if ( mnP_valid ) begin
-                    n_io_state = MNP_OUT;
+                if ( mP_valid && !mp_flag ) begin
+                    n_mp_state = MP_OUT;
                 end
 
                 case ( mode )
-                    BITS32: n_counter =  31;
-                    BITS64: n_counter =  63;
-                    BITS128: n_counter =  128;
-                    BITS256: n_counter =  255;
+                    BITS32: n_mp_counter =  31;
+                    BITS64: n_mp_counter =  63;
+                    BITS128: n_mp_counter =  128;
+                    BITS256: n_mp_counter =  255;
                 endcase
 
-                if ( i_nP_valid ) begin
-                    n_io_state = NP_IN;
-                end
                 if ( i_m_P_valid ) begin
-                    n_io_state = MODE_IN;
-                    n_counter = 1; // not sure if this is ok
+                    n_mp_state = MODE_IN;
+                    n_mp_counter = 1; // not sure if this is ok
                 end
 
             end 
             MODE_IN: begin
-                n_counter = counter - 1;
+                n_mp_counter = mp_counter - 1;
                 n_mode = {mode[0], i_mode};
 
-                if ( counter == 0 ) begin
-                    n_io_state = MP_IN;
+                if ( mp_counter == 0 ) begin
+                    n_mp_state = MP_IN;
                     case ( mode )
-                        BITS32: n_counter =  31;
-                        BITS64: n_counter =  63;
-                        BITS128: n_counter =  128;
-                        BITS256: n_counter =  255;
+                        BITS32: n_mp_counter =  31;
+                        BITS64: n_mp_counter =  63;
+                        BITS128: n_mp_counter =  128;
+                        BITS256: n_mp_counter =  255;
                     endcase
                 end
             end
             MP_IN: begin
-                n_counter = counter - 1;
+                n_mp_counter = mp_counter - 1;
                 n_Px = { Px[MAX_BITS - 2:0], i_Px };
                 n_Py = { Py[MAX_BITS - 2:0], i_Py };
                 n_m = { m[MAX_BITS - 2:0], i_m };
@@ -195,64 +205,165 @@ module Wrapper(
                 n_b = { b[MAX_BITS - 2:0], i_b };
                 n_prime = { prime[MAX_BITS - 2:0], i_prime };
 
-                if ( counter == 0 ) begin
+                if ( mp_counter == 0 ) begin
                     n_m_P_valid = 1;
-                    n_io_state = IDLE;
+                    n_mp_state = IDLE;
                 end
             end 
-            NP_IN: begin
-                n_counter = counter - 1;
-                n_nPx = { nPx[MAX_BITS - 2:0], i_nPx };
-                n_nPy = { nPy[MAX_BITS - 2:0], i_nPy };
-
-                if ( counter == 0 ) begin
-                    n_nP_valid = 1;
-                    n_io_state = IDLE;
-                end
-            end
             MP_OUT: begin
-                n_counter = counter - 1;
+                n_mp_counter = mp_counter - 1;
 
                 o_mP_valid = 1;
 
-                if ( counter == 0 ) begin
-                    n_io_state = IDLE;
-                end
-            end
-            MNP_OUT: begin
-                n_counter = counter - 1;
-
-                o_mnP_valid = 1;
-
-                if ( counter == 0 ) begin
-                    n_io_state = IDLE;
+                if ( mp_counter == 0 ) begin
+                    n_mp_state = IDLE;
+                    n_mp_flag = 1;
                 end
             end
             default: begin
-                n_io_state = io_state;
+                n_mp_state = mp_state;
             end
         endcase
     end
 
-    Core core(
-        .clk(clk),
-        .rst(rst),
-        .i_Px(Px),
-        .i_Py(Py),
-        .i_prime(prime),
-        .i_a(a),
-        .i_b(b),
-        .i_m(m),
-        .i_nPx(nPx),
-        .i_nPy(nPy),
-        .i_m_P_valid(m_P_valid),
-        .i_nP_valid(nP_valid),
-        .o_mPx(n_mPx),
-        .o_mPy(n_mPy),
-        .o_mnPx(n_mnPx),
-        .o_mnPy(n_mnPy),
-        .o_mP_valid(n_mP_valid),
-        .o_mnP_valid(n_mnP_valid)
+    always@(*) begin
+        
+        n_mnp_state = mnp_state;
+
+        n_nPx  = nPx;
+        n_nPy  = nPy;
+
+        n_nP_valid = nP_valid;
+
+        o_mnP_valid = 0;
+
+        n_mnp_counter = mnp_counter;
+
+        case ( mnp_state )
+            IDLE: begin
+
+                if ( mnP_valid ) begin
+                    n_mnp_state = MNP_OUT;
+                end
+
+                case ( mode )
+                    BITS32: n_mnp_counter =  31;
+                    BITS64: n_mnp_counter =  63;
+                    BITS128: n_mnp_counter =  128;
+                    BITS256: n_mnp_counter =  255;
+                endcase
+
+                if ( i_nP_valid ) begin
+                    n_mnp_state = NP_IN;
+                end
+
+            end 
+            NP_IN: begin
+                n_mnp_counter = mnp_counter - 1;
+                n_nPx = { nPx[MAX_BITS - 2:0], i_nPx };
+                n_nPy = { nPy[MAX_BITS - 2:0], i_nPy };
+
+                if ( mnp_counter == 0 ) begin
+                    n_nP_valid = 1;
+                    n_mnp_state = IDLE;
+                end
+            end
+            MNP_OUT: begin
+                n_mnp_counter = mnp_counter - 1;
+
+                o_mnP_valid = 1;
+
+                if ( mnp_counter == 0 ) begin
+                    n_mnp_state = MNP_FINISH;
+                end
+            end
+            MNP_FINISH: begin
+                n_mnp_state = mnp_state;
+            end
+        endcase
+    end
+
+    // signal for submodule
+    wire [MAX_BITS-1:0] daa_a, daa_b, daa_prime, daa_mul, daa_mode, daa_outputx, daa_outputy;
+    reg [MAX_BITS-1:0] daa_pointx, daa_pointy;
+    reg daa_valid;
+    wire daa_finished;
+
+    assign daa_a = a;
+    assign daa_b = b;
+    assign daa_prime = prime;
+    assign daa_mul = m;
+    assign daa_mode = mode;
+
+    always@(*) begin
+        
+        n_cal_state = cal_state;
+        n_cal_flag = cal_flag;
+
+        n_mPx = mPx;
+        n_mPy = mPy;
+        n_mnPx = mnPx;
+        n_mnPy = mnPy;
+        daa_pointx = 0;
+        daa_pointy = 0;
+
+        daa_valid = 0;
+
+        n_mP_valid = mP_valid;
+        n_mnP_valid = mnP_valid;
+
+        case ( cal_state )
+            IDLE: begin
+                if ( m_P_valid && !cal_flag ) begin
+                    n_cal_state = MP_CAL;
+                end
+                if ( nP_valid ) begin
+                    n_cal_state = MNP_CAL;
+                end
+            end 
+            MP_CAL: begin
+                daa_valid = 1;
+                daa_pointx = Px;
+                daa_pointy = Py;
+                if ( daa_finished ) begin
+                    n_cal_state = IDLE;
+                    n_mPx = daa_outputx;
+                    n_mPy = daa_outputy;
+                    n_mP_valid = 1;
+                    n_cal_flag = 1;
+                end
+            end
+            MNP_CAL: begin
+                daa_valid = 1;
+                daa_pointx = nPx;
+                daa_pointy = nPy;
+                if ( daa_finished ) begin
+                    n_cal_state = DONT_CAL;
+                    n_mnPx = daa_outputx;
+                    n_mnPy = daa_outputy;
+                    n_mnP_valid = 1;
+                end
+            end
+            DONT_CAL: n_cal_state = cal_state;
+        endcase
+
+    end
+
+
+    double_and_add_always daa(
+        clk,
+        rst,
+        daa_mode,
+        daa_valid,
+        daa_pointx,
+        daa_pointy,
+        daa_prime,
+        daa_a,
+        daa_b,
+        daa_mul,
+        daa_finished,
+        daa_outputx,
+        daa_outputy
     );
 
 endmodule // Wrapper
