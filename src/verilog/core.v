@@ -3,29 +3,25 @@
 //`include "./point_add.sv"
 //20190425 change sv into v
 
-`define WIDTH 192
+//`define WIDTH 192
+`include "ECCDefine.v"
 
 module point_always(
-input i_clk,
-input i_rst,
-input i_start,
-input [`WIDTH-1:0]i_a,
-input [`WIDTH-1:0]i_b,
-input [`WIDTH-1:0]i_p,
-input [`WIDTH-1:0]i_x1,
-input [`WIDTH-1:0]i_y1,
-input [`WIDTH-1:0]i_n,
+	input i_clk,
+	input i_rst,
+	input i_start,
+	input [MAX_BITS - 1:0]i_a,
+	input [MAX_BITS - 1:0]i_b,
+	input [MAX_BITS - 1:0]i_p,//mod p
+	input [MAX_BITS - 1:0]i_x1,
+	input [MAX_BITS - 1:0]i_y1,
+	input [MAX_BITS - 1:0]i_n,//nP
+	input [1:0]i_mode,
 
-
-//input [`WIDTH-1:0]i_num,
-
-output [`WIDTH-1:0]o_result_x,
-output [`WIDTH-1:0]o_result_y,
-output o_finished
-
+	output [MAX_BITS - 1:0]o_result_x,
+	output [MAX_BITS - 1:0]o_result_y,
+	output o_finished
 );
-
-//enum  {IDLE, ADD1, MUL,ADD, DONE} state_r, state_w;
 
 parameter IDLE = 3'b000;
 parameter ADD1 = 3'b001;
@@ -35,17 +31,18 @@ parameter DONE = 3'b100;
 
 reg [3:0] state_r, state_w;
 reg start_mul_r, start_add_r,start_mul_w, start_add_w;
-reg [`WIDTH-1:0]add_x1_r, add_x1_w;
-reg [`WIDTH-1:0]add_y1_r, add_y1_w;
-reg [`WIDTH-1:0]add_x2_r, add_x2_w;
-reg [`WIDTH-1:0]add_y2_r, add_y2_w;
-reg [`WIDTH-1:0]mul_x_r,mul_x_w;
-reg [`WIDTH-1:0]mul_y_r,mul_y_w;
-reg [15:0]k_counter_r, k_counter_w;
-reg [`WIDTH-1:0] result_x_r,result_x_w;
-reg [`WIDTH-1:0] result_y_r,result_y_w;
-wire [`WIDTH-1:0] result_add_x,result_add_y;
-wire [`WIDTH-1:0] result_mul_x,result_mul_y;
+reg [MAX_BITS - 1:0]add_x1_r, add_x1_w;
+reg [MAX_BITS - 1:0]add_y1_r, add_y1_w;
+reg [MAX_BITS - 1:0]add_x2_r, add_x2_w;
+reg [MAX_BITS - 1:0]add_y2_r, add_y2_w;
+reg [MAX_BITS - 1:0]mul_x_r,mul_x_w;
+reg [MAX_BITS - 1:0]mul_y_r,mul_y_w;
+
+reg [MAX_REG:0]k_counter_r, k_counter_w;
+reg [MAX_BITS - 1:0] result_x_r,result_x_w;
+reg [MAX_BITS - 1:0] result_y_r,result_y_w;
+wire [MAX_BITS - 1:0] result_add_x,result_add_y;
+wire [MAX_BITS - 1:0] result_mul_x,result_mul_y;
 reg finished_w, finished_r;
 reg finished_init_w, finished_init_r;
 reg add_r,add_w;
@@ -62,15 +59,17 @@ reg add_r,add_w;
 		.i_y1(add_y1_r),
 		//.i_x2(add_x2_r),
 		//.i_y2(add_y2_r),		
-		.i_x2(i_x1),
+		.i_x2(i_x1),//add and double -> add 1
 		.i_y2(i_y1),
-		.i_num({`WIDTH{1'b0}}),
+		.i_num({MAX_BITS{1'b0}}),//nP
+
 		.o_result_x(result_add_x),
 		.o_result_y(result_add_y),
 		.o_finish_mul(finish_add),
 		.add(add_r)
 	);
-		point_double_always mul(
+
+	point_double_always mul(
 		.i_clk(i_clk),
 		.i_rst(i_rst),
 		.i_start(start_mul_r),
@@ -79,16 +78,18 @@ reg add_r,add_w;
 		.i_p(i_p),
 		.i_x1(mul_x_r),
 		.i_y1(mul_y_r),
-		.i_num({`WIDTH{1'b0}}),
+		.i_num({MAX_BITS{1'b0}}),//nP
 
 		.o_result_x(result_mul_x),
 		.o_result_y(result_mul_y),
 		.o_finish_mul(finish_mul),
 		.add(add_r)
 	);
+
 assign o_result_x = result_x_r;
 assign o_result_y = result_y_r;
 assign o_finished = finished_r;
+
 always @(*) begin
 		start_mul_w = start_mul_r;
 		start_add_w = start_add_r;
@@ -109,8 +110,8 @@ always @(*) begin
 		IDLE:begin
             finished_w = 0;
 			if(i_start) begin
-			k_counter_w = `WIDTH-1;
-			state_w = ADD1;
+				k_counter_w = {MAX_REG{1'b1}} >> ~i_mode;//i_mode = 2'b00 shift 2'b11 bit
+				state_w = ADD1;
 			end
 		end
 		/*
@@ -129,22 +130,21 @@ always @(*) begin
 		*/
 		ADD1:begin		
 			if(i_n[k_counter_r]) begin
-			if(k_counter_r == 0)begin
+				if(k_counter_r == 0)begin
 					result_x_w = i_x1;
 					result_y_w = i_y1;
 					state_w = DONE;
-			end else begin
+				end else begin
 					mul_x_w = i_x1;
 					mul_y_w = i_y1;
 					start_mul_w = 1;
 					add_w = 1;
 					state_w = MUL;
-
+				end
 			end
-
-			end
-		k_counter_w = k_counter_r - 1;		
+			k_counter_w = k_counter_r - 1;		
 		end
+
 		ADD:begin
 			start_add_w = 0;
 			start_mul_w = 0;
@@ -185,31 +185,32 @@ always @(*) begin
 			start_mul_w = 0;
 			
 			if(finish_mul) begin
-			add_w = 0;
-					if(i_n[k_counter_r]) begin
-							//add_x2_w = i_x1;
-							//add_y2_w = i_y1;
-							add_w = 1;
-					end else begin
-							//add_x2_w = -1;
-							//add_y2_w = -1;
-							add_w =0;
-					end			
-				if(result_mul_x==i_x1 && result_mul_y== i_y1)begin
-						mul_x_w = result_mul_x;
-						mul_y_w = result_mul_y;
-						start_mul_w = 1;
-						state_w = ADD;		
+				add_w = 0;
+				if(i_n[k_counter_r]) begin
+					//add_x2_w = i_x1;
+					//add_y2_w = i_y1;
+					add_w = 1;
 				end else begin
-						add_x1_w = result_mul_x;
-						add_y1_w = result_mul_y;	
+					//add_x2_w = -1;
+					//add_y2_w = -1;
+					add_w =0;
+				end			
+				if(result_mul_x==i_x1 && result_mul_y== i_y1)begin
+					mul_x_w = result_mul_x;
+					mul_y_w = result_mul_y;
+					start_mul_w = 1;
+					state_w = ADD;		
+				end else begin
+					add_x1_w = result_mul_x;
+					add_y1_w = result_mul_y;	
 
-						start_add_w = 1;
-						state_w = ADD;				
+					start_add_w = 1;
+					state_w = ADD;				
 			
 				end
 			end
 		end
+		
 		DONE:begin
 			finished_w = 1;
 			state_w = IDLE;
@@ -228,12 +229,12 @@ always@(posedge i_clk or posedge i_rst) begin
         add_y2_r <= 0;
         mul_x_r <= 0;
         mul_y_r <= 0;
-		k_counter_r <= `WIDTH-1;
+		k_counter_r <= {MAX_REG{1'b1}} >> ~i_mode;
         state_r <= IDLE;
         finished_r <= 0;
         finished_init_r <= 0;
-        result_x_r <= {256{1'b1}};
-        result_y_r <= {256{1'b1}};
+        result_x_r <= {MAX_BITS{1'b1}};
+        result_y_r <= {MAX_BITS{1'b1}};
         add_r <= 0;
 	end else begin
 		start_mul_r <= start_mul_w;

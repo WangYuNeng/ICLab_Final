@@ -3,41 +3,42 @@
 //do (a+1)p anyway and decide output at the end of calculation
 //a>=2 && a != (-1,-1)
 
-`define WIDTH 192
+//`define WIDTH 192
+`include "ECCDefine.v"
 
 module point_add_always(
 input i_clk,
 input i_rst,
 input i_start,
-input [`WIDTH-1:0]i_a,
-input [`WIDTH-1:0]i_b,
-input [`WIDTH-1:0]i_p,
-input [`WIDTH-1:0]i_x1,
-input [`WIDTH-1:0]i_y1,
-input [`WIDTH-1:0]i_x2,
-input [`WIDTH-1:0]i_y2,
-input [`WIDTH-1:0]i_num,//add for division
+input [MAX_BITS - 1:0]i_a,
+input [MAX_BITS - 1:0]i_b,
+input [MAX_BITS - 1:0]i_p,
+input [MAX_BITS - 1:0]i_x1,
+input [MAX_BITS - 1:0]i_y1,
+input [MAX_BITS - 1:0]i_x2,
+input [MAX_BITS - 1:0]i_y2,
+input [MAX_BITS - 1:0]i_num,//add for division
 input add,//for whether add or not
 
 output o_finish_mul,
-output [`WIDTH-1:0]o_result_x,
-output [`WIDTH-1:0]o_result_y
+output [MAX_BITS - 1:0]o_result_x,
+output [MAX_BITS - 1:0]o_result_y
 );
 	//reg add;
-    wire [`WIDTH-1:0] result_in;
+    wire [MAX_BITS - 1:0] result_in;
     reg         start_in_r, start_in_w;
     wire         finish_in; 
-    reg [`WIDTH-1:0]in_a_r, in_a_w; 
-    reg [`WIDTH-1:0]in_b_r, in_b_w; 
+    reg [MAX_BITS - 1:0]in_a_r, in_a_w; 
+    reg [MAX_BITS - 1:0]in_b_r, in_b_w; 
 
-    wire [`WIDTH-1:0] result_mod_prod3;
+    wire [MAX_BITS - 1:0] result_mod_prod3;
     reg         start_mod_prod3_r, start_mod_prod3_w;
     wire         finish_mod_prod3;  
  
-    wire [`WIDTH-1:0] result_mod_prod4;
+    wire [MAX_BITS - 1:0] result_mod_prod4;
     reg         start_mod_prod4_r, start_mod_prod4_w;
     wire         finish_mod_prod4;  
-    reg [`WIDTH-1:0]a_mod4_r, a_mod4_w;
+    reg [MAX_BITS - 1:0]a_mod4_r, a_mod4_w;
 
 //enum  {IDLE, MUL, RUN1, RUN2, RUNX, RUNX2, RUNY, DONE} state_r, state_w;
 parameter IDLE = 3'b000;
@@ -49,19 +50,19 @@ parameter RUNY = 3'b101;
 parameter DONE = 3'b110;
 parameter MUL = 3'b111;
 reg [3:0] state_r, state_w;
-reg [`WIDTH-1:0]temp_r, temp_w;
-reg [`WIDTH-1:0]temp1_r,temp1_w;
-reg [`WIDTH-1:0]temp2_r,temp2_w;
-reg [`WIDTH-1:0]temp3_r,temp3_w;
+reg [MAX_BITS - 1:0]temp_r, temp_w;
+reg [MAX_BITS - 1:0]temp1_r,temp1_w;
+reg [MAX_BITS - 1:0]temp2_r,temp2_w;
+reg [MAX_BITS - 1:0]temp3_r,temp3_w;
 reg [1:0]mc_r, mc_w;
-reg [`WIDTH-1:0]result_x_r, result_x_w;
-reg [`WIDTH-1:0]result_y_r, result_y_w;
+reg [MAX_BITS - 1:0]result_x_r, result_x_w;
+reg [MAX_BITS - 1:0]result_y_r, result_y_w;
 reg finished_w, finished_r;
 /*
 reg start_mul_r, start_mul_w;
-reg [`WIDTH-1:0]mul_x_r,mul_x_w;
-reg [`WIDTH-1:0]mul_y_r,mul_y_w;
-reg [`WIDTH-1:0] result_mul_x,result_mul_y;
+reg [MAX_BITS - 1:0]mul_x_r,mul_x_w;
+reg [MAX_BITS - 1:0]mul_y_r,mul_y_w;
+reg [MAX_BITS - 1:0] result_mul_x,result_mul_y;
 
 	point_mul_1 mul(
 		.i_clk(i_clk),
@@ -182,8 +183,8 @@ always @(*) begin
 					result_y_w = i_y1;
 					state_w = DONE;
 				end else begin
-					result_x_w = {`WIDTH{1'b1}};
-					result_y_w = {`WIDTH{1'b1}};
+					result_x_w = {MAX_BITS{1'b1}};
+					result_y_w = {MAX_BITS{1'b1}};
 					state_w = DONE;
 				end
 
@@ -281,7 +282,7 @@ always @(*) begin
 			start_mod_prod4_w = 0;
 			if(finish_mod_prod4) begin //temp*(x1 - x3)
 				if(add == 1)begin
-				if(i_x1 == {`WIDTH{1'b1}}) begin
+				if(i_x1 == {MAX_BITS{1'b1}}) begin
 					result_x_w = i_x2;
 					result_y_w = i_y2;
 					//finished_w = 1;
