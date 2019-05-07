@@ -1,5 +1,5 @@
 
-module double_and_add_always(
+module point_always(
     input clk,
     input rst,
     input [1:0] daa_mode,
@@ -53,7 +53,7 @@ module double_and_add_always(
             o_daa_outputx = ans_mPx;
             o_daa_outputy = ans_mPy;
             n_cheat_counter = 1;
-            n_counter = 32;
+            n_counter = 64;
         end
         if(daa_valid && counter == 0 && cheat_counter == 1) begin
             o_daa_finished = 1;

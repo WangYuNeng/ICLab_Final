@@ -31,10 +31,10 @@ module Wrapper(
     output reg o_mnP_valid,
 
     // output data
-    output o_mPx,
-    output o_mPy,
-    output o_mnPx,
-    output o_mnPy
+    output reg o_mPx,
+    output reg o_mPy,
+    output reg o_mnPx,
+    output reg o_mnPy
 );
 
 /* In/Out process
@@ -56,7 +56,8 @@ module Wrapper(
 
     // output data 
     reg [`MAX_BITS - 1:0] mPx, mPy, mnPx, mnPy;
-    reg [`MAX_BITS - 1:0] n_mPx, n_mPy, n_mnPx, n_mnPy;
+    reg [`MAX_BITS - 1:0] n_shift_mPx, n_shift_mPy, n_shift_mnPx, n_shift_mnPy;
+    reg [`MAX_BITS - 1:0] n_load_mPx, n_load_mPy, n_load_mnPx, n_load_mnPy;
     reg mP_valid, n_mP_valid;
     reg mnP_valid, n_mnP_valid;
 
@@ -64,11 +65,42 @@ module Wrapper(
     reg [`MAX_REG:0] mnp_counter, n_mnp_counter;
 
     // output signal and data
+    always@(*) begin
+        case (mode)
+            `BITS32: begin
+                o_mPx = mPx[31];
+                o_mPy = mPy[31];
+                o_mnPx = mnPx[31];
+                o_mnPy = mnPy[31];
+            end
+            `BITS64: begin
+                o_mPx = mPx[63];
+                o_mPy = mPy[63];
+                o_mnPx = mnPx[63];
+                o_mnPy = mnPy[63];
+            end
+            `BITS128: begin
+                o_mPx = mPx[127];
+                o_mPy = mPy[127];
+                o_mnPx = mnPx[127];
+                o_mnPy = mnPy[127];
+            end
+            `BITS256: begin
+                o_mPx = mPx[255];
+                o_mPy = mPy[255];
+                o_mnPx = mnPx[255];
+                o_mnPy = mnPy[255];
+            end
+        endcase
+    end
+
+    /*
     assign o_mPx = mPx[mp_counter];
     assign o_mPy = mPy[mp_counter];
     assign o_mnPx = mnPx[mnp_counter];
     assign o_mnPy = mnPy[mnp_counter];
-
+    */
+    
     // io control signal
     reg [1:0] mp_state, n_mp_state;
     reg [1:0] mnp_state, n_mnp_state;
@@ -86,6 +118,18 @@ module Wrapper(
     localparam MP_CAL = 2'b01;
     localparam MNP_CAL = 2'b10;
     localparam DONT_CAL = 2'b11;
+
+    // signal for submodule
+    wire [`MAX_BITS-1:0] daa_a, daa_b, daa_prime, daa_mul, daa_mode, daa_outputx, daa_outputy;
+    reg [`MAX_BITS-1:0] daa_pointx, daa_pointy;
+    reg daa_valid;
+    wire daa_finished;
+
+    assign daa_a = a;
+    assign daa_b = b;
+    assign daa_prime = prime;
+    assign daa_mul = m;
+    assign daa_mode = mode;
 
 
     always@( posedge clk or negedge rst ) begin
@@ -128,10 +172,20 @@ module Wrapper(
             Py   <= n_Py;
             nPx  <= n_nPx;
             nPy  <= n_nPy;
-            mPx  <= n_mPx;
-            mPy  <= n_mPy;
-            mnPx <= n_mnPx;
-            mnPy <= n_mnPy;
+
+            // Assume daa cycle is longer than output so mP and mnP wouldn't interfere each other
+            if ( daa_finished ) begin
+                mPx  <= n_load_mPx;
+                mPy  <= n_load_mPy;
+                mnPx <= n_load_mnPx;
+                mnPy <= n_load_mnPy;
+            end else begin
+                mPx  <= n_shift_mPx;
+                mPy  <= n_shift_mPy;
+                mnPx <= n_shift_mnPx;
+                mnPy <= n_shift_mnPy;
+            end
+
             prime <= n_prime;
             m_P_valid <= n_m_P_valid;
             nP_valid <= n_nP_valid;
@@ -159,6 +213,8 @@ module Wrapper(
 
         o_mP_valid = 0;
 
+        n_shift_mPx = mPx;
+        n_shift_mPy = mPy;
         n_mp_counter = mp_counter;
 
         case ( mp_state )
@@ -212,6 +268,8 @@ module Wrapper(
             MP_OUT: begin
                 n_mp_counter = mp_counter - 1;
 
+                n_shift_mPx = { mPx[`MAX_BITS - 2:0], mPx[`MAX_BITS - 1] };
+                n_shift_mPy = { mPy[`MAX_BITS - 2:0], mPy[`MAX_BITS - 1] };
                 o_mP_valid = 1;
 
                 if ( mp_counter == 0 ) begin
@@ -234,6 +292,8 @@ module Wrapper(
 
         n_nP_valid = nP_valid;
 
+        n_shift_mnPx = mnPx;
+        n_shift_mnPy = mnPy;
         o_mnP_valid = 0;
 
         n_mnp_counter = mnp_counter;
@@ -270,6 +330,9 @@ module Wrapper(
             MNP_OUT: begin
                 n_mnp_counter = mnp_counter - 1;
 
+                n_shift_mnPx = { mnPx[`MAX_BITS - 2:0], mnPx[`MAX_BITS - 1] };
+                n_shift_mnPy = { mnPy[`MAX_BITS - 2:0], mnPy[`MAX_BITS - 1] };
+
                 o_mnP_valid = 1;
 
                 if ( mnp_counter == 0 ) begin
@@ -282,27 +345,15 @@ module Wrapper(
         endcase
     end
 
-    // signal for submodule
-    wire [`MAX_BITS-1:0] daa_a, daa_b, daa_prime, daa_mul, daa_mode, daa_outputx, daa_outputy;
-    reg [`MAX_BITS-1:0] daa_pointx, daa_pointy;
-    reg daa_valid;
-    wire daa_finished;
-
-    assign daa_a = a;
-    assign daa_b = b;
-    assign daa_prime = prime;
-    assign daa_mul = m;
-    assign daa_mode = mode;
-
     always@(*) begin
         
         n_cal_state = cal_state;
         n_cal_flag = cal_flag;
 
-        n_mPx = mPx;
-        n_mPy = mPy;
-        n_mnPx = mnPx;
-        n_mnPy = mnPy;
+        n_load_mPx = mPx;
+        n_load_mPy = mPy;
+        n_load_mnPx = mnPx;
+        n_load_mnPy = mnPy;
         daa_pointx = 0;
         daa_pointy = 0;
 
@@ -326,8 +377,8 @@ module Wrapper(
                 daa_pointy = Py;
                 if ( daa_finished ) begin
                     n_cal_state = IDLE;
-                    n_mPx = daa_outputx;
-                    n_mPy = daa_outputy;
+                    n_load_mPx = daa_outputx;
+                    n_load_mPy = daa_outputy;
                     n_mP_valid = 1;
                     n_cal_flag = 1;
                 end
@@ -338,8 +389,8 @@ module Wrapper(
                 daa_pointy = nPy;
                 if ( daa_finished ) begin
                     n_cal_state = DONT_CAL;
-                    n_mnPx = daa_outputx;
-                    n_mnPy = daa_outputy;
+                    n_load_mnPx = daa_outputx;
+                    n_load_mnPy = daa_outputy;
                     n_mnP_valid = 1;
                 end
             end
