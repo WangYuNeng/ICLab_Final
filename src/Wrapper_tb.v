@@ -110,22 +110,22 @@ module Wrapper_tb;
         if (o_mP_valid) begin
             mp_counter <= mp_counter + 1;
             if(o_mPx !== data_golden[0][i]) begin
-                $display("mPx[0] error at %d, clk %d\n", mp_counter, clk_counter);
+                $display("mPx error at %d, clk %d\n", mp_counter, clk_counter);
                 error <= error + 1;
             end
             if(o_mPy !== data_golden[1][i]) begin
-                $display("mPx[1] error at %d, clk %d\n", mp_counter, clk_counter);
+                $display("mPy error at %d, clk %d\n", mp_counter, clk_counter);
                 error <= error + 1;
             end
         end
         if (o_mnP_valid) begin
             mnp_counter <= mnp_counter + 1;
             if(o_mnPx !== data_golden[2][j]) begin
-                $display("mnPx[0] error at %d, clk %d\n", mp_counter, clk_counter);
+                $display("mnPx error at %d, clk %d\n", mp_counter, clk_counter);
                 error <= error + 1;
             end
             if(o_mnpy !== data_golden[3][j]) begin
-                $display("mnPx[1] error at %d, clk %d\n", mp_counter, clk_counter);
+                $display("mnPy error at %d, clk %d\n", mp_counter, clk_counter);
                 error <= error + 1;
             end
         end
