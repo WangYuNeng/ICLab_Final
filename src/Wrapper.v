@@ -5,6 +5,7 @@ m, n = multiplier
 Px, Py = coordinate of point
 */
 
+`include "ECCDefine.vh"
 module Wrapper(
     // clock reset signal
     input clk,
@@ -36,7 +37,6 @@ module Wrapper(
     output o_mnPy
 );
 
-`include "ECCDefine.v"
 /* In/Out process
 1. #0 -> i_m_P_valid 
 2. #1 -> i_mode (MSB first)
@@ -45,24 +45,23 @@ module Wrapper(
 5. o_mP_valid( or o_mnP_valid) and their MSB transmit at the same cycle, which is different from input signal
 */
 
-
     // input data
     reg [1:0] mode;
     reg [1:0] n_mode;
     // 0 -> x, 1 -> y
-    reg [MAX_BITS - 1:0] Px, Py, m, nPx, nPy, prime, a, b;
-    reg [MAX_BITS - 1:0] n_Px, n_Py, n_m, n_nPx, n_nPy, n_prime, n_a, n_b;
+    reg [`MAX_BITS - 1:0] Px, Py, m, nPx, nPy, prime, a, b;
+    reg [`MAX_BITS - 1:0] n_Px, n_Py, n_m, n_nPx, n_nPy, n_prime, n_a, n_b;
     reg m_P_valid, n_m_P_valid;
     reg nP_valid, n_nP_valid;
 
     // output data 
-    reg [MAX_BITS - 1:0] mPx, mPy, mnPx, mnPy;
-    reg [MAX_BITS - 1:0] n_mPx, n_mPy, n_mnPx, n_mnPy;
+    reg [`MAX_BITS - 1:0] mPx, mPy, mnPx, mnPy;
+    reg [`MAX_BITS - 1:0] n_mPx, n_mPy, n_mnPx, n_mnPy;
     reg mP_valid, n_mP_valid;
     reg mnP_valid, n_mnP_valid;
 
-    reg [MAX_REG:0] mp_counter, n_mp_counter;
-    reg [MAX_REG:0] mnp_counter, n_mnp_counter;
+    reg [`MAX_REG:0] mp_counter, n_mp_counter;
+    reg [`MAX_REG:0] mnp_counter, n_mnp_counter;
 
     // output signal and data
     assign o_mPx = mPx[mp_counter];
@@ -96,7 +95,7 @@ module Wrapper(
             cal_state <= IDLE;
             mp_flag <= 0;
             cal_flag <= 0;
-            mode  <= BITS32;
+            mode  <= `BITS32;
             m <= 0;
             a <= 0;
             b <= 0;
@@ -170,10 +169,10 @@ module Wrapper(
                 end
 
                 case ( mode )
-                    BITS32: n_mp_counter =  31;
-                    BITS64: n_mp_counter =  63;
-                    BITS128: n_mp_counter =  128;
-                    BITS256: n_mp_counter =  255;
+                    `BITS32: n_mp_counter =  31;
+                    `BITS64: n_mp_counter =  63;
+                    `BITS128: n_mp_counter =  128;
+                    `BITS256: n_mp_counter =  255;
                 endcase
 
                 if ( i_m_P_valid ) begin
@@ -189,21 +188,21 @@ module Wrapper(
                 if ( mp_counter == 0 ) begin
                     n_mp_state = MP_IN;
                     case ( mode )
-                        BITS32: n_mp_counter =  31;
-                        BITS64: n_mp_counter =  63;
-                        BITS128: n_mp_counter =  128;
-                        BITS256: n_mp_counter =  255;
+                        `BITS32: n_mp_counter =  31;
+                        `BITS64: n_mp_counter =  63;
+                        `BITS128: n_mp_counter =  128;
+                        `BITS256: n_mp_counter =  255;
                     endcase
                 end
             end
             MP_IN: begin
                 n_mp_counter = mp_counter - 1;
-                n_Px = { Px[MAX_BITS - 2:0], i_Px };
-                n_Py = { Py[MAX_BITS - 2:0], i_Py };
-                n_m = { m[MAX_BITS - 2:0], i_m };
-                n_a = { a[MAX_BITS - 2:0], i_a };
-                n_b = { b[MAX_BITS - 2:0], i_b };
-                n_prime = { prime[MAX_BITS - 2:0], i_prime };
+                n_Px = { Px[`MAX_BITS - 2:0], i_Px };
+                n_Py = { Py[`MAX_BITS - 2:0], i_Py };
+                n_m = { m[`MAX_BITS - 2:0], i_m };
+                n_a = { a[`MAX_BITS - 2:0], i_a };
+                n_b = { b[`MAX_BITS - 2:0], i_b };
+                n_prime = { prime[`MAX_BITS - 2:0], i_prime };
 
                 if ( mp_counter == 0 ) begin
                     n_m_P_valid = 1;
@@ -247,10 +246,10 @@ module Wrapper(
                 end
 
                 case ( mode )
-                    BITS32: n_mnp_counter =  31;
-                    BITS64: n_mnp_counter =  63;
-                    BITS128: n_mnp_counter =  128;
-                    BITS256: n_mnp_counter =  255;
+                    `BITS32: n_mnp_counter =  31;
+                    `BITS64: n_mnp_counter =  63;
+                    `BITS128: n_mnp_counter =  128;
+                    `BITS256: n_mnp_counter =  255;
                 endcase
 
                 if ( i_nP_valid ) begin
@@ -260,8 +259,8 @@ module Wrapper(
             end 
             NP_IN: begin
                 n_mnp_counter = mnp_counter - 1;
-                n_nPx = { nPx[MAX_BITS - 2:0], i_nPx };
-                n_nPy = { nPy[MAX_BITS - 2:0], i_nPy };
+                n_nPx = { nPx[`MAX_BITS - 2:0], i_nPx };
+                n_nPy = { nPy[`MAX_BITS - 2:0], i_nPy };
 
                 if ( mnp_counter == 0 ) begin
                     n_nP_valid = 1;
@@ -284,8 +283,8 @@ module Wrapper(
     end
 
     // signal for submodule
-    wire [MAX_BITS-1:0] daa_a, daa_b, daa_prime, daa_mul, daa_mode, daa_outputx, daa_outputy;
-    reg [MAX_BITS-1:0] daa_pointx, daa_pointy;
+    wire [`MAX_BITS-1:0] daa_a, daa_b, daa_prime, daa_mul, daa_mode, daa_outputx, daa_outputy;
+    reg [`MAX_BITS-1:0] daa_pointx, daa_pointy;
     reg daa_valid;
     wire daa_finished;
 
@@ -350,7 +349,7 @@ module Wrapper(
     end
 
 
-    double_and_add_always daa(
+    point_always daa(
         clk,
         rst,
         daa_mode,
