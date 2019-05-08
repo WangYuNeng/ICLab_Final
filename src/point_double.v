@@ -19,6 +19,7 @@ output [`MAX_BITS - 1:0]o_result_x,
 output [`MAX_BITS - 1:0]o_result_y
 );
 
+
     wire [`MAX_BITS - 1:0] result_in1;
     reg         start_in1_r, start_in1_w;
    	wire         finish_in1; 

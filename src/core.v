@@ -9,18 +9,18 @@
 module point_always(
 	input i_clk,
 	input i_rst,
-	input [1:0] i_mode,
 	input i_start,
-	input [`MAX_BITS - 1:0]i_x1,
-	input [`MAX_BITS - 1:0]i_y1,
-	input [`MAX_BITS - 1:0]i_p,//mod p
 	input [`MAX_BITS - 1:0]i_a,
 	input [`MAX_BITS - 1:0]i_b,
+	input [`MAX_BITS - 1:0]i_p,//mod p
+	input [`MAX_BITS - 1:0]i_x1,
+	input [`MAX_BITS - 1:0]i_y1,
 	input [`MAX_BITS - 1:0]i_n,//nP
+	input [1:0]i_mode,
 
-	output o_finished,
 	output [`MAX_BITS - 1:0]o_result_x,
-	output [`MAX_BITS - 1:0]o_result_y
+	output [`MAX_BITS - 1:0]o_result_y,
+	output o_finished
 );
 
 parameter IDLE = 3'b000;
@@ -110,7 +110,12 @@ always @(*) begin
 		IDLE:begin
             finished_w = 0;
 			if(i_start) begin
-				k_counter_w = {`MAX_REG{1'b1}} >> ~i_mode;//i_mode = 2'b00 shift 2'b11 bit
+				case (i_mode)
+					`BITS256: k_counter_w = 255;
+					`BITS128: k_counter_w = 127;
+					`BITS64 : k_counter_w = 63;
+					`BITS32 : k_counter_w = 31;
+				endcase
 				state_w = ADD1;
 			end
 		end
@@ -229,7 +234,7 @@ always@(posedge i_clk or negedge i_rst) begin
         add_y2_r <= 0;
         mul_x_r <= 0;
         mul_y_r <= 0;
-		k_counter_r <= {`MAX_REG{1'b1}} >> ~i_mode;
+		k_counter_r <= 31;
         state_r <= IDLE;
         finished_r <= 0;
         finished_init_r <= 0;

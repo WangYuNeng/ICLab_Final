@@ -1,6 +1,6 @@
 `timescale 1ns/10ps
 `define CYCLE 20
-`define TIME_LIMIT 500000
+`define TIME_LIMIT 5000000
 `include "ECCDefine.vh"
 
 // `define sdf_file "./ECC_syn.sdf"
@@ -241,11 +241,10 @@ endtask
 
     begin
         @(negedge clk); 
-            i_nP_valid = 1'b1;
-        @(negedge clk); 
-            i_nP_valid = 1'b0;
+            i_nP_valid = 1'b1;           
     for (i=bit_num-1; i>=0; i=i-1) begin
         @(negedge clk);
+            i_nP_valid = 1'b0;
             i_nPx = data_input[6][i];
             i_nPy = data_input[7][i];
 	end

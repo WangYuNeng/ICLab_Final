@@ -243,10 +243,10 @@ module Wrapper(
 
                 if ( mp_counter == 0 ) begin
                     n_mp_state = MP_IN;
-                    case ( mode )
+                    case ( {mode[0], i_mode} )
                         `BITS32: n_mp_counter =  31;
                         `BITS64: n_mp_counter =  63;
-                        `BITS128: n_mp_counter =  128;
+                        `BITS128: n_mp_counter =  127;
                         `BITS256: n_mp_counter =  255;
                     endcase
                 end
@@ -308,7 +308,7 @@ module Wrapper(
                 case ( mode )
                     `BITS32: n_mnp_counter =  31;
                     `BITS64: n_mnp_counter =  63;
-                    `BITS128: n_mnp_counter =  128;
+                    `BITS128: n_mnp_counter =  127;
                     `BITS256: n_mnp_counter =  255;
                 endcase
 
@@ -403,17 +403,17 @@ module Wrapper(
     point_always daa(
         clk,
         rst,
-        daa_mode,
         daa_valid,
-        daa_pointx,
-        daa_pointy,
-        daa_prime,
         daa_a,
         daa_b,
+        daa_prime,
+        daa_pointx,
+        daa_pointy,
         daa_mul,
-        daa_finished,
+        daa_mode,
         daa_outputx,
-        daa_outputy
+        daa_outputy,
+        daa_finished
     );
 
 endmodule // Wrapper

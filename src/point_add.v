@@ -5,6 +5,7 @@
 
 //`define WIDTH 192
 `include "ECCDefine.vh"
+
 module point_add_always(
 input i_clk,
 input i_rst,
@@ -24,7 +25,6 @@ output [`MAX_BITS - 1:0]o_result_x,
 output [`MAX_BITS - 1:0]o_result_y
 );
 	//reg add;
-
     wire [`MAX_BITS - 1:0] result_in;
     reg         start_in_r, start_in_w;
     wire         finish_in; 
