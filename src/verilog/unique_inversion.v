@@ -3,19 +3,19 @@ module uni_inversion(
 	input  i_clk,
     input  i_rst,
     input  i_start,
-    input  [`WIDTH-1:0] i_n,
-    input  [`WIDTH-1:0] i_num,
-    input  [`WIDTH-1:0] i_a,
-    input  [`WIDTH-1:0] i_b,  
-    output [`WIDTH-1:0] o_result, // 256 bits only
+    input  [`MAX_BITS-1:0] i_n,
+    input  [`MAX_BITS-1:0] i_num,
+    input  [`MAX_BITS-1:0] i_a,
+    input  [`MAX_BITS-1:0] i_b,  
+    output [`MAX_BITS-1:0] o_result, // 256 bits only
     output         o_finished
 
 );
-    wire [`WIDTH-1:0] result_mont;
+    wire [`MAX_BITS-1:0] result_mont;
     reg         start_mont_r, start_mont_w;
     wire         finish_mont;
-    reg [`WIDTH-1:0] a_mont_w, a_mont_r;
-    reg [`WIDTH-1:0] b_mont_w, b_mont_r;
+    reg [`MAX_BITS-1:0] a_mont_w, a_mont_r;
+    reg [`MAX_BITS-1:0] b_mont_w, b_mont_r;
 
 parameter IDLE = 3'b000;
 parameter RUN1 = 3'b001;
@@ -25,12 +25,12 @@ parameter DONE = 3'b100;
 
 
 reg [2:0]state_r, state_w;
-reg [`WIDTH-1:0] u_r, u_w, v_r, v_w, r_r, r_w, s_r, s_w;
-reg [`WIDTH-1:0]i_count_r, i_count_w;
-reg [`WIDTH-1:0]l_count_r, l_count_w;
+reg [`MAX_BITS-1:0] u_r, u_w, v_r, v_w, r_r, r_w, s_r, s_w;
+reg [`MAX_BITS-1:0]i_count_r, i_count_w;
+reg [`MAX_BITS-1:0]l_count_r, l_count_w;
 //logic r2_r, r2_w;
 reg finished_w, finished_r;
-reg [`WIDTH-1:0] k_r,k_w;
+reg [`MAX_BITS-1:0] k_r,k_w;
 assign o_finished = finished_r;
 assign o_result = r_r;
 
