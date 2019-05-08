@@ -182,6 +182,7 @@ always @(*) begin
 						state_w = DONE;
 					end					
 				end
+	
 			//end else 
 
 		end

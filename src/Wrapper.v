@@ -376,6 +376,7 @@ module Wrapper(
                 daa_pointx = Px;
                 daa_pointy = Py;
                 if ( daa_finished ) begin
+                    daa_valid = 0;
                     n_cal_state = IDLE;
                     n_load_mPx = daa_outputx;
                     n_load_mPy = daa_outputy;
@@ -388,6 +389,7 @@ module Wrapper(
                 daa_pointx = nPx;
                 daa_pointy = nPy;
                 if ( daa_finished ) begin
+                    daa_valid = 0;
                     n_cal_state = DONT_CAL;
                     n_load_mnPx = daa_outputx;
                     n_load_mnPy = daa_outputy;

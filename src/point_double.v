@@ -150,6 +150,7 @@ always@(*) begin
 	start_mod_prod4_w = start_mod_prod4_r;
 	case(state_r)
 		IDLE: begin
+
 		finished_w = 0;
 			if(i_start) begin
 			//(2*y)^-1

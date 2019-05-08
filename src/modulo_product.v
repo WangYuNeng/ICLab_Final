@@ -33,6 +33,7 @@ always@(*) begin
         finished_w = finished_r;
 	case(state_r)
 		IDLE: begin
+
             finished_w = 0;
 			if(i_start) begin
             
@@ -66,6 +67,7 @@ always@(*) begin
 			
 		end
 		DONE:begin
+		
 			finished_w = 1;
 			state_w = IDLE;
 		end

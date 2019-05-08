@@ -134,6 +134,8 @@ always @(*) begin
 	//start_mul_w = start_mul_r;
 	case(state_r)
 		IDLE: begin
+		state_w = IDLE;
+
 		finished_w = 0;
 			if(i_start) begin
 			//(2*y)^-1
@@ -302,6 +304,7 @@ always @(*) begin
 			end
 		end
 		DONE: begin
+		
 			finished_w = 1;
 			state_w = IDLE;
 		end
