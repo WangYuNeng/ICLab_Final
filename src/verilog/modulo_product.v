@@ -5,10 +5,10 @@ module ModuloProduct(
     input  i_clk,
     input  i_rst,
     input  i_start,
-    input  [`WIDTH-1:0] i_n,
-    input  [`WIDTH-1:0] i_a, //2^256 has 257 bits
-    input  [`WIDTH-1:0] i_b, //i_a
-    output [`WIDTH-1:0] o_result, // 256 bits only
+    input  [`MAX_BITS-1:0] i_n,
+    input  [`MAX_BITS-1:0] i_a, //2^256 has 257 bits
+    input  [`MAX_BITS-1:0] i_b, //i_a
+    output [`MAX_BITS-1:0] o_result, // 256 bits only
     output         o_finished
 );
 
@@ -18,8 +18,8 @@ parameter DONE = 2'b10;
 
 
 reg [1:0]state_r, state_w;
-reg [`WIDTH-1:0]t_r, t_w;
-reg [`WIDTH-1:0]m_r, m_w;
+reg [`MAX_BITS-1:0]t_r, t_w;
+reg [`MAX_BITS-1:0]m_r, m_w;
 reg [8:0]k_counter_r, k_counter_w;
 reg finished_w, finished_r;
 assign o_finished = finished_r;
@@ -45,7 +45,7 @@ always@(*) begin
 		RUN: begin
 			finished_w = 0;
 
-			if(k_counter_r < `WIDTH) begin
+			if(k_counter_r < `MAX_BITS) begin
 				if(i_a[k_counter_r])begin
 					if((m_r + t_r) >= i_n)begin
 						m_w = m_r + t_r - i_n;
