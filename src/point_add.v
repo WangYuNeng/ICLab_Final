@@ -10,6 +10,7 @@ module point_add_always(
 input i_clk,
 input i_rst,
 input i_start,
+input [1:0] i_mode,
 input [`MAX_BITS - 1:0]i_a,
 input [`MAX_BITS - 1:0]i_b,
 input [`MAX_BITS - 1:0]i_p,
@@ -17,7 +18,6 @@ input [`MAX_BITS - 1:0]i_x1,
 input [`MAX_BITS - 1:0]i_y1,
 input [`MAX_BITS - 1:0]i_x2,
 input [`MAX_BITS - 1:0]i_y2,
-input [`MAX_BITS - 1:0]i_num,//add for division
 input add,//for whether add or not
 
 output o_finish_mul,
@@ -58,33 +58,12 @@ reg [1:0]mc_r, mc_w;
 reg [`MAX_BITS - 1:0]result_x_r, result_x_w;
 reg [`MAX_BITS - 1:0]result_y_r, result_y_w;
 reg finished_w, finished_r;
-/*
-reg start_mul_r, start_mul_w;
-reg [`MAX_BITS - 1:0]mul_x_r,mul_x_w;
-reg [`MAX_BITS - 1:0]mul_y_r,mul_y_w;
-reg [`MAX_BITS - 1:0] result_mul_x,result_mul_y;
 
-	point_mul_1 mul(
-		.i_clk(i_clk),
-		.i_rst(i_rst),
-		.i_start(start_mul_r),
-		.i_a(i_a),
-		.i_b(i_b),
-		.i_p(i_p),
-		.i_x1(i_x1),
-		.i_y1(i_y1),
-
-		.o_result_x(result_mul_x),
-		.o_result_y(result_mul_y),
-		.o_finish_mul(finish_mul)
-	);
-*/
-	uni_inversion inversion(
+	uni_inversion inversion_add(
 		.i_clk(i_clk),
 	    .i_rst(i_rst),
 	    .i_start(start_in_r),
 	    .i_n(i_p),
-        .i_num(i_num), 
 	    .i_a(in_a_r), 
         .i_b(in_b_r),
 	    .o_result(result_in), // 256 bits only
@@ -92,17 +71,18 @@ reg [`MAX_BITS - 1:0] result_mul_x,result_mul_y;
 
 	);
 
-    ModuloProduct modulo_product3(
+    ModuloProduct modulo_product_add_0(
         .i_clk(i_clk),
         .i_rst(i_rst),
         .i_start(start_mod_prod3_r),
+		.i_mode(i_mode),
         .i_n(i_p), // concat 1 bit to MSB since i_n [256:0]
         .i_a(temp_r), // temp
         .i_b(temp_r), // temp
         .o_result(result_mod_prod3),
         .o_finished(finish_mod_prod3)
     );
-    ModuloProduct modulo_product4(
+    ModuloProduct modulo_product_add_1(
         .i_clk(i_clk),
         .i_rst(i_rst),
         .i_start(start_mod_prod4_r),
@@ -144,24 +124,6 @@ always @(*) begin
 				else
 					in_a_w = i_y2 - i_y1 + i_p;
 
-				
-				//won't be happened
-/*				
-				if(i_x2 == -1) begin
-					result_x_w = i_x1;
-					result_y_w = i_y1;
-					finished_w = 1;
-					//state_w = DONE;
-				end else 
-
-				if(i_x1 == -1) begin
-					result_x_w = i_x2;
-					result_y_w = i_y2;
-					finished_w = 1;
-					//state_w = DONE;
-				end else 
-				
-*/
 				if(i_x2 != i_x1) begin
 					if(i_x2 > i_x1)
 						in_b_w = i_x2 - i_x1;
@@ -197,44 +159,6 @@ always @(*) begin
 
 			
 		end
-/*
-		MUL: begin
-				start_mul_w = 0;
-				if(finish_mul) begin
-					result_x_w = result_mul_x;
-					result_y_w = result_mul_y;
-					finished_w = 1;
-					state_w = DONE;
-				end
-		end
-*/
-/*
-		RUN1: begin
-				start_in_w = 0;
-				if(finish_in) begin
-				if(i_y2 > i_y1)
-					temp1_w = i_y2 - i_y1;
-				else
-					temp1_w = i_y2 - i_y1 + i_p;
-				temp2_w = result_in;
-				start_mod_prod1_w = 1;
-				state_w = RUN2;
-				end
-		end
-		RUN2: begin
-
-			start_mod_prod1_w = 0;
-			if(finish_mod_prod1)begin //3x^2/2y
-				temp_w = result_mod_prod1;
-				start_mod_prod3_w = 1;
-				state_w = RUNX;
-				mc_w = 0;
-			end
-
-		end
-
-
-*/
 		RUN2: begin
 
 			start_in_w = 0;
