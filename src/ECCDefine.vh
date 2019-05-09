@@ -11,6 +11,7 @@
 `define BITS64  2'b01
 `define BITS32  2'b00
 
+//window algorithm
 `define WINDOW_WIDTH 4
 `define PRECAL_NUM 16
 `define WIDTH 258
