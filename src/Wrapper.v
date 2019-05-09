@@ -120,7 +120,8 @@ module Wrapper(
     localparam DONT_CAL = 2'b11;
 
     // signal for submodule
-    wire [`MAX_BITS-1:0] daa_a, daa_b, daa_prime, daa_mul, daa_mode, daa_outputx, daa_outputy;
+    wire [`MAX_BITS-1:0] daa_a, daa_b, daa_prime, daa_mul, daa_outputx, daa_outputy;
+    wire [1:0] daa_mode;
     reg [`MAX_BITS-1:0] daa_pointx, daa_pointy;
     reg daa_valid;
     wire daa_finished;

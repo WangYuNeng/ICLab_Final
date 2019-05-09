@@ -1,6 +1,7 @@
-`timescale 1ns/10ps
+`timescale 1ns/100ps
 `define CYCLE 20
 `define TIME_LIMIT 5000000
+`define SDFFILE    "./ECC.sdf"	          // Modify your sdf file name
 `include "ECCDefine.vh"
 
 // `define sdf_file "./ECC_syn.sdf"
@@ -33,7 +34,7 @@ module Wrapper_tb;
     o_mPx, o_mPy, o_mnPx, o_mnPy);
 
     `ifdef SDF
-	    initial $sdf_annotate(`sdf_file, top);
+	    initial $sdf_annotate(`SDFFILE, top);
     `endif
 
     initial begin
