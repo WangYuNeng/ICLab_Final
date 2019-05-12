@@ -1,9 +1,9 @@
 `timescale 1ns/100ps
 `define CYCLE 20
 `define TIME_LIMIT 5000000
-`define SDFFILE    "./ECC.sdf"	          // Modify your sdf file name
-`include "ECCDefine.vh"
-
+`define SDFFILE    "./ECC_syn.sdf"	          // Modify your sdf file name
+//`include "ECCDefine.vh"
+`define BITS 256
 // `define sdf_file "./ECC_syn.sdf"
 
 module Wrapper_tb;
@@ -25,10 +25,10 @@ module Wrapper_tb;
 
     // tb
     integer err1, err2, err3, err4, err5, err6, err7, err8;
-    reg [`MAX_BITS-1:0] out_mPx, out_mPy;
-    reg [`MAX_BITS-1:0] out_mnPx, out_mnPy;
-    reg [`MAX_BITS-1:0] data_input  [0:7];
-    reg [`MAX_BITS-1:0] data_golden [0:3];
+    reg [`BITS-1:0] out_mPx, out_mPy;
+    reg [`BITS-1:0] out_mnPx, out_mnPy;
+    reg [`BITS-1:0] data_input  [0:7];
+    reg [`BITS-1:0] data_golden [0:3];
     
     Wrapper top(clk, rst, i_m_P_valid, i_nP_valid, i_mode, i_a, i_b, i_prime, i_Px, i_Py, i_m, i_nPx, i_nPy, o_mP_valid, o_mnP_valid, 
     o_mPx, o_mPy, o_mnPx, o_mnPy);
@@ -233,6 +233,12 @@ task compute_mP;
 		out_mPx[i] = o_mPx;
 		out_mPy[i] = o_mPy;
 	end
+
+    for(i=bit_num; i<`BITS; i=i+1) begin
+        out_mPx[i] = 1'b0;
+        out_mPy[i] = 1'b0;
+    end
+
     end
 endtask
 
@@ -256,6 +262,12 @@ endtask
 		out_mnPx[i] = o_mnPx;
 		out_mnPy[i] = o_mnPy;
 	end
+
+    for(i=bit_num; i<`BITS; i=i+1) begin
+        out_mnPx[i] = 1'b0;
+        out_mnPy[i] = 1'b0;
+    end
+
     end
     endtask
 
@@ -264,19 +276,19 @@ endtask
     output integer err;
     begin
     err = 0;
-    if (out_mPx != data_golden[0]) begin
+    if (out_mPx !== data_golden[0]) begin
         $display("mPx Wrong!, expected result is %h, but the responsed result is %h", data_golden[0], out_mPx);
         err = err + 1;
     end
-    if (out_mPy != data_golden[1]) begin
+    if (out_mPy !== data_golden[1]) begin
         $display("mPy Wrong!, expected result is %h, but the responsed result is %h", data_golden[1], out_mPy);
         err = err + 1;
     end
-    if (out_mnPx != data_golden[2]) begin
+    if (out_mnPx !== data_golden[2]) begin
         $display("mnPx Wrong!, expected result is %h, but the responsed result is %h", data_golden[2], out_mnPx);
         err = err + 1;
     end
-    if (out_mnPy != data_golden[3]) begin
+    if (out_mnPy !== data_golden[3]) begin
         $display("mnPy Wrong!, expected result is %h, but the responsed result is %h", data_golden[3], out_mnPy);
         err = err + 1;
     end
