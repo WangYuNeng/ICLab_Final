@@ -9,7 +9,7 @@ module ModuloProduct(
     input  [`MAX_BITS-1:0] i_n,
     input  [`MAX_BITS-1:0] i_a, 
     input  [`MAX_BITS-1:0] i_b,
-    output [`MAX_BITS-1:0] o_result, // 256 bits only
+    output [`MAX_BITS-1:0] o_result,
     output         o_finished
 );
 
@@ -23,7 +23,7 @@ reg [`MAX_REG+1:0] k_counter_r, k_counter_w;
 reg finished_w, finished_r;
 assign o_finished = finished_r;
 assign o_result = m_r;
-/*
+
 reg [`MAX_REG:0] bit_num;
 always@(*) begin
 	case (i_mode)
@@ -33,7 +33,7 @@ always@(*) begin
 		`BITS256: bit_num = 255;
 	endcase
 end
-*/
+
 always@(*) begin
         t_w = t_r;
         m_w = m_r;
@@ -52,28 +52,26 @@ always@(*) begin
 		end
 		RUN: begin
 			finished_w = 0;
-			if(k_counter_r < `MAX_BITS) begin
-				if(i_a[k_counter_r])begin
+			if(k_counter_r <= bit_num) begin
+				if (i_a[k_counter_r]) begin
 					if((m_r + t_r) >= i_n)begin
 						m_w = m_r + t_r - i_n;
 					end else begin
 						m_w = m_r + t_r;
 					end
-                
 				end
+				if( (t_r << 1) >= i_n) begin
+                	t_w = (t_r << 1) - i_n;
+            	end 
+				else begin
+            	    t_w = t_r << 1;
+            	end
                 k_counter_w = k_counter_r + 1;
 			end 
 			else begin
 				finished_w = 1;
 				state_w = IDLE;
 			end
-
-			if( (t_r << 1) >= i_n) begin
-                t_w = (t_r << 1) - i_n;
-            end 
-			else begin
-                t_w = t_r << 1;
-            end 
 		end
 	endcase
 end
