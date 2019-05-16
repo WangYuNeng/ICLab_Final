@@ -1,6 +1,5 @@
 //a*r
 `include "ECCDefine.vh" 
-
 module ModuloProduct(
     input  i_clk,
     input  i_rst,
@@ -19,7 +18,7 @@ parameter RUN  = 1'b1;
 reg state_r, state_w;
 reg [`MAX_BITS:0] t_r, t_w;
 reg [`MAX_BITS:0] m_r, m_w;
-reg [`MAX_REG+1:0] k_counter_r, k_counter_w;
+reg [`MAX_REG:0] k_counter_r, k_counter_w;
 reg finished_w, finished_r;
 assign o_finished = finished_r;
 assign o_result = m_r;
@@ -52,23 +51,23 @@ always@(*) begin
 		end
 		RUN: begin
 			finished_w = 0;
-			if(k_counter_r <= bit_num) begin
-				if (i_a[k_counter_r]) begin
-					if((m_r + t_r) >= i_n)begin
-						m_w = m_r + t_r - i_n;
-					end else begin
-						m_w = m_r + t_r;
-					end
+			
+			if (i_a[k_counter_r]) begin
+				if((m_r + t_r) >= i_n)begin
+					m_w = m_r + t_r - i_n;
+				end else begin
+					m_w = m_r + t_r;
 				end
-				if( (t_r << 1) >= i_n) begin
-                	t_w = (t_r << 1) - i_n;
-            	end 
-				else begin
-            	    t_w = t_r << 1;
-            	end
-                k_counter_w = k_counter_r + 1;
-			end 
+			end
+			if( (t_r << 1) >= i_n) begin
+            	t_w = (t_r << 1) - i_n;
+            end 
 			else begin
+                t_w = t_r << 1;
+            end
+            k_counter_w = k_counter_r + 1;
+			 
+			if (k_counter_r == bit_num) begin
 				finished_w = 1;
 				state_w = IDLE;
 			end
