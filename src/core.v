@@ -455,9 +455,9 @@ task add(input start_add_r,finished_add_r,finish_in,finish_mod_prod);
 
 		end
 		RUNX2:begin
-				if(add_r == 1)begin
 					temp257_1 = {1'b0,add_x1_r} - result_add_x_r;
-					temp257_2 = {1'b0,add_x1_r} - add_x2_r;
+					temp257_2 = {1'b0,add_x1_r} - add_x2_r;				
+				if(add_r == 1)begin
 				if(result_add_x_r > add_x1_r)
 					mod_prod_b_w = temp257_1 + i_p;
 				else
@@ -605,12 +605,12 @@ task mul(input start_mul_r,finished_mul_r,finish_in,finish_mod_prod);
 
 		end
 		RUNX2:begin
-				temp257_2 = {1'b0,mul_x_r} - result_mul_x_r;				
+				temp257_1 = {1'b0,mul_x_r} - result_mul_x_r;				
 				if(result_mul_x_r > mul_x_r)
 
-					mod_prod_b_w = temp257_2 + i_p;
+					mod_prod_b_w = temp257_1 + i_p;
 				else
-					mod_prod_b_w = temp257_2;
+					mod_prod_b_w = temp257_1;
 				start_mod_prod_w = 1;
 				mul_state_w = RUNY;
 
@@ -621,11 +621,11 @@ task mul(input start_mul_r,finished_mul_r,finish_in,finish_mod_prod);
 			start_mod_prod_w = 0;
 			if(finish_mod_prod) begin //temp*(x1 - x3)			
 				if(add_r)begin
-					temp257_2 = result_mod_prod - mul_y_r;
+					temp257_1 = result_mod_prod - mul_y_r;
 					if(mul_y_r > result_mod_prod)
-						result_mul_y_w = temp257_2 + i_p;
+						result_mul_y_w = temp257_1 + i_p;
 					else
-						result_mul_y_w = temp257_2;
+						result_mul_y_w = temp257_1;
 				end else begin
 					result_mul_y_w = mul_y_r;
 				end
