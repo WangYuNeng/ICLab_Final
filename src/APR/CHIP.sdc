@@ -1,16 +1,12 @@
 ###################################################################
 
-# Created by write_sdc on Mon May 27 14:17:52 2019
+# Created by write_sdc on Mon May 27 20:55:59 2019
 
 ###################################################################
 set sdc_version 2.0
 
 set_units -time ns -resistance kOhm -capacitance pF -voltage V -current mA
-set_operating_conditions -max WCCOM -max_library                               \
-fsa0m_a_generic_core_ss1p62v125c\
-                         -min BCCOM -min_library                               \
-fsa0m_a_generic_core_ff1p98vm40c
-set_wire_load_model -name G200K -library fsa0m_a_generic_core_tt1p8v25c
+set_max_fanout 20 [current_design]
 set_max_area 0
 set_load -pin_load 1 [get_ports o_mP_valid]
 set_load -pin_load 1 [get_ports o_mnP_valid]
