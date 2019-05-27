@@ -54299,72 +54299,108 @@ module Wrapper ( clk, rst, i_m_P_valid, i_nP_valid, i_mode, i_a, i_prime, i_Px,
 endmodule
 
 module CHIP (
-	clk_p_i, 
-	reset_n_i, 
-	data_a_i, 
-	data_b_i, 
-	inst_i, 
-	data_o);
+	clk, 
+	rst, 
+	i_m_P_valid,
+       i_nP_valid,
+       i_mode,
+       i_a,
+       i_prime,
+       i_m,
+       i_nPx,
+       i_nPy,
+       i_Px,
+       i_Py,
+       o_mP_valid,
+       o_mnP_valid,
+       o_mPx,
+       o_mPy,
+       o_mnPx,
+       o_mnPy
+       );
 
-   input clk_p_i;
-   input reset_n_i;
-   input [7:0] data_a_i;
-   input [1:0] data_b_i;
-   output [15:0] data_o;
+   input clk;
+   input rst;
+   input i_m_P_valid;
+   input i_nP_valid;
+   input i_mode;
+   input i_a;
+   input i_prime;
+   input i_m;
+   input i_nPx;
+   input i_nPy;
+   input i_Px;
+   input i_Py;
+   output o_mP_valid;
+   output o_mnP_valid;
+   output o_mPx;
+   output o_mPy;
+   output o_mnPx;
+   output o_mnPy;
 
 
    // Internal wires
-   wire [7:0] i_data_a_i;
-   wire [1:0] i_data_b_i;
-   wire [5:0] i_data_o;
    wire i_clk_p_i;
    wire i_reset_n_i;
    wire n_logic0;
    wire n_logic1;
+   wire i_m_P_valid_i;
+   wire i_nP_valid_i;
+   wire i_mode_i;
+   wire i_a_i;
+   wire i_prime_i;
+   wire i_m_i;
+   wire i_nPx_i;
+   wire i_nPy_i;
+   wire i_Px_i;
+   wire i_Py_i;
+   wire o_mP_valid_o;
+   wire o_mnP_valid_o;
+   wire o_mPx_o;
+   wire o_mPy_o;
+   wire o_mnPx_o;
+   wire o_mnPy_o;
 
    Wrapper wrapper_in( 
        .clk(i_clk_p_i),
        .rst(i_reset_n_i),
-       .i_m_P_valid(i_data_a_i[0]), 
-       .i_nP_valid(i_data_a_i[1]), 
-       .i_mode(i_data_a_i[2]), 
-       .i_a(i_data_a_i[3]), 
-       .i_prime(i_data_a_i[4]),  
-       .i_m(i_data_a_i[5]), 
-       .i_nPx(i_data_a_i[6]), 
-       .i_nPy(i_data_a_i[7]), 
-       .i_Px(i_data_b_i[0]), 
-       .i_Py(i_data_b_i[1]),
-       .o_mP_valid(i_data_o[0]), 
-       .o_mnP_valid(i_data_o[1]), 
-       .o_mPx(i_data_o[2]), 
-       .o_mPy(i_data_o[3]), 
-       .o_mnPx(i_data_o[4]), 
-       .o_mnPy(i_data_o[5]) );
+       .i_m_P_valid(i_m_P_valid_i), 
+       .i_nP_valid(i_nP_valid_i), 
+       .i_mode(i_mode_i), 
+       .i_a(i_a_i), 
+       .i_prime(i_prime_i),  
+       .i_m(i_m_i), 
+       .i_nPx(i_nPx_i), 
+       .i_nPy(i_nPy_i), 
+       .i_Px(i_Px_i), 
+       .i_Py(i_Py_i),
+       .o_mP_valid(o_mP_valid_o), 
+       .o_mnP_valid(o_mnP_valid_o), 
+       .o_mPx(o_mPx_o), 
+       .o_mPy(o_mPy_o), 
+       .o_mnPx(o_mnPx_o), 
+       .o_mnPy(o_mnPy_o) );
 
   TIE0 ipad_n_logic0(.O(n_logic0));
   TIE1 ipad_n_logic1(.O(n_logic1));
-  XMD ipad_clk_p_i (.O(i_clk_p_i), .I(clk_p_i), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
-  XMD ipad_reset_n_i (.O(i_reset_n_i), .I(reset_n_i), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
-  XMD ipad_data_a_i_0 (.O(i_data_a_i[0]), .I(data_a_i[0]), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
-  XMD ipad_data_a_i_1 (.O(i_data_a_i[1]), .I(data_a_i[1]), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
-  XMD ipad_data_a_i_2 (.O(i_data_a_i[2]), .I(data_a_i[2]), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
-  XMD ipad_data_a_i_3 (.O(i_data_a_i[3]), .I(data_a_i[3]), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
-  XMD ipad_data_a_i_4 (.O(i_data_a_i[4]), .I(data_a_i[4]), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
-  XMD ipad_data_a_i_5 (.O(i_data_a_i[5]), .I(data_a_i[5]), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
-  XMD ipad_data_a_i_6 (.O(i_data_a_i[6]), .I(data_a_i[6]), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
-  XMD ipad_data_a_i_7 (.O(i_data_a_i[7]), .I(data_a_i[7]), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_clk_p_i (.O(i_clk_p_i), .I(clk), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_reset_n_i (.O(i_reset_n_i), .I(rst), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_m_P_valid (.O(i_m_P_valid_i), .I(i_m_P_valid), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_nP_valid (.O(i_nP_valid_i), .I(i_nP_valid), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_mode (.O(i_mode_i), .I(i_mode), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_a (.O(i_a_i), .I(i_a), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_prime (.O(i_prime_i), .I(i_prime), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_m (.O(i_m_i), .I(i_m), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_nPx (.O(i_nPx_i), .I(i_nPx), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_nPy (.O(i_nPy_i), .I(i_nPy), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_Px (.O(i_Px_i), .I(i_Px), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_Py (.O(i_Py_i), .I(i_Py), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
   
-  XMD ipad_data_b_i_0 (.O(i_data_b_i[0]), .I(data_b_i[0]), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
-  XMD ipad_data_b_i_1 (.O(i_data_b_i[1]), .I(data_b_i[1]), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
-  
-  
-  YA2GSD ipad_data_o_0 (.O(data_o[0]), .I(i_data_o[0]), .E(n_logic1), .E2(n_logic0), .E4(n_logic0), .E8(n_logic0), .SR(n_logic0));
-  YA2GSD ipad_data_o_1 (.O(data_o[1]), .I(i_data_o[1]), .E(n_logic1), .E2(n_logic0), .E4(n_logic0), .E8(n_logic0), .SR(n_logic0));
-  YA2GSD ipad_data_o_2 (.O(data_o[2]), .I(i_data_o[2]), .E(n_logic1), .E2(n_logic0), .E4(n_logic0), .E8(n_logic0), .SR(n_logic0));
-  YA2GSD ipad_data_o_3 (.O(data_o[3]), .I(i_data_o[3]), .E(n_logic1), .E2(n_logic0), .E4(n_logic0), .E8(n_logic0), .SR(n_logic0));
-  YA2GSD ipad_data_o_4 (.O(data_o[4]), .I(i_data_o[4]), .E(n_logic1), .E2(n_logic0), .E4(n_logic0), .E8(n_logic0), .SR(n_logic0));
-  YA2GSD ipad_data_o_5 (.O(data_o[5]), .I(i_data_o[5]), .E(n_logic1), .E2(n_logic0), .E4(n_logic0), .E8(n_logic0), .SR(n_logic0));
+  YA2GSD ipad_o_mP_valid (.O(o_mP_valid), .I(o_mP_valid_o), .E(n_logic1), .E2(n_logic0), .E4(n_logic0), .E8(n_logic0), .SR(n_logic0));
+  YA2GSD ipad_o_mnP_valid (.O(o_mnP_valid), .I(o_mnP_valid_o), .E(n_logic1), .E2(n_logic0), .E4(n_logic0), .E8(n_logic0), .SR(n_logic0));
+  YA2GSD ipad_o_mPx (.O(o_mPx), .I(o_mPx_o), .E(n_logic1), .E2(n_logic0), .E4(n_logic0), .E8(n_logic0), .SR(n_logic0));
+  YA2GSD ipad_o_mPy (.O(o_mPy), .I(o_mPy_o), .E(n_logic1), .E2(n_logic0), .E4(n_logic0), .E8(n_logic0), .SR(n_logic0));
+  YA2GSD ipad_o_mnPx (.O(o_mnPx), .I(o_mnPx_o), .E(n_logic1), .E2(n_logic0), .E4(n_logic0), .E8(n_logic0), .SR(n_logic0));
+  YA2GSD ipad_o_mnPy (.O(o_mnPy), .I(o_mnPy_o), .E(n_logic1), .E2(n_logic0), .E4(n_logic0), .E8(n_logic0), .SR(n_logic0));
   
 endmodule
-
