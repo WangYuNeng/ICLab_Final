@@ -1,0 +1,42 @@
+Version: 1 
+
+Orient: R90
+Pad: CORNER0          NW  CORNERD
+Pad: ipad_clk_p_i     N   
+Pad: ipad_reset_n_i   N    
+Pad: ipad_i_m_P_valid N   
+Pad: ipad_i_nP_valid  N   
+Pad: ipad_i_mode      N    
+Pad: ipad_CoreVDD1    N   VCCKD
+Pad: ipad_CoreVSS1    N   GNDKD
+Pad: ipad_i_a         N   
+Pad: ipad_i_prime     N   
+Pad: ipad_i_m         N   
+Pad: ipad_i_nPx       N   
+Pad: ipad_i_nPy       N 
+
+Orient: R0 
+Pad: CORNER1          NE  CORNERD
+Pad: ipad_i_Px        W   
+Pad: ipad_i_Py        W   
+Pad: ipad_IOVDD1      W   VCC3IOD
+Pad: ipad_IOVSS1      W   GNDIOD 
+
+Orient: R180
+Pad: CORNER2          SW  CORNERD
+Pad: ipad_o_mP_valid  S   
+Pad: ipad_o_mnP_valid S   
+Pad: ipad_o_mPx       S   
+Pad: ipad_CoreVSS2    S   GNDKD
+Pad: ipad_CoreVDD2    S   VCCKD
+Pad: ipad_o_mPy       S   
+Pad: ipad_o_mnPx      S   
+Pad: ipad_o_mnPy      S      
+
+Orient: R270
+Pad: CORNER3          SE  CORNERD   
+Pad: ipad_IOVDD2      E   VCC3IOD
+Pad: ipad_IOVSS2      E   GNDIOD
+
+
+
