@@ -2,7 +2,7 @@
 a, b = coefficiont of EC
 Prime
 m, n = multiplier
-Px, Py = coordinate of point
+Pointx, Pointy = coordinate of point
 */
 
 `include "ECCDefine.vh"
@@ -12,37 +12,34 @@ module Wrapper(
     input rst,
 
     // input control signal
-    input i_m_P_valid,
-    input i_nP_valid,
+    input i_data_valid,
     input i_mode,
     
     // input data
     input i_a,
-    //input i_b,
     input i_prime,
-    input i_Px,
-    input i_Py,
-    input i_m,
-    input i_nPx,
-    input i_nPy,
+    
+    input i_Pointx,
+    input i_Pointy,
+    input i_mul,
 
     //output control signal
-    output reg o_mP_valid,
-    output reg o_mnP_valid,
+    output reg o_data_valid,
 
     // output data
-    output reg o_mPx,
-    output reg o_mPy,
-    output reg o_mnPx,
-    output reg o_mnPy
+    output reg o_Pointx,
+    output reg o_Pointy,
 );
 
 /* In/Out process
-1. #0 -> i_m_P_valid 
+1. #0 -> i_data_valid 
 2. #1 -> i_mode (MSB first)
-3. #3 -> i_P, i_a, i_b, i_m; (MSB first)
-4. #3+mode+x, x >= 1 -> i_nP
-5. o_mP_valid( or o_mnP_valid) and their MSB transmit at the same cycle, which is different from input signal
+3. #3 -> i_Pointx, i_Pointy, i_a, i_mul; (MSB first)
+4. o_data_valid and their MSB transmit at the same cycle, which is different from input signal
+5. #0 -> i_data_valid 
+6. #3 -> i_Pointx, i_Pointy, i_mul; (MSB first)
+4. o_data_valid and their MSB transmit at the same cycle, which is different from input signal
+
 */
 
     // input data
