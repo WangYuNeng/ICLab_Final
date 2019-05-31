@@ -10,16 +10,16 @@ module Wrapper_tb;
     reg rst;
 
     // reg control signal
-    reg i_m_P_valid, i_nP_valid, i_mode;
+    reg i_data_valid, i_mode;
     
     // reg data
-    reg i_a, i_b, i_prime, i_Px, i_Py, i_m, i_nPx, i_nPy;
+    reg i_a, i_b, i_prime, i_Px, i_Py, i_m;
 
     //output control signal
-    wire o_mP_valid, o_mnP_valid;
+    wire o_data_valid;
 
     // output data
-    wire o_mPx, o_mPy, o_mnPx, o_mnPy;
+    wire o_Px, o_Py;
 
     // tb
     integer err1, err2, err3, err4, err5, err6, err7, err8, testID;
@@ -28,8 +28,7 @@ module Wrapper_tb;
     reg [`MAX_BITS-1:0] data_input  [0:7];
     reg [`MAX_BITS-1:0] data_golden [0:3];
     
-    Wrapper top(clk, rst, i_m_P_valid, i_nP_valid, i_mode, i_a, i_prime, i_Px, i_Py, i_m, i_nPx, i_nPy, o_mP_valid, o_mnP_valid, 
-    o_mPx, o_mPy, o_mnPx, o_mnPy);
+    Wrapper top(clk, rst, i_data_valid, i_mode, i_a, i_prime, i_Px, i_Py, i_m, o_data_valid, o_Px, o_Py);
 
     `ifdef SDF
 	    initial $sdf_annotate(`SDFFILE, top);
@@ -61,10 +60,10 @@ module Wrapper_tb;
         $display("Pattern %d. 16 bits", testID);
         $readmemh("in16_0.pattern", data_input);
         $readmemh("out16_0.pattern", data_golden);
-        fork
+        begin
             compute_mP(`BITS16, 16);
-            #(`CYCLE*10) compute_mnP(16);
-        join
+            #(`CYCLE*5) compute_mnP(16);
+        end
         check_result(testID, err1);
         testID = testID + 1;
         $display(" ----------------------------------------------------------------------");
@@ -77,10 +76,10 @@ module Wrapper_tb;
         $display("Pattern %d. 16 bits", testID);
         $readmemh("in16_1.pattern", data_input);
         $readmemh("out16_1.pattern", data_golden);
-        fork
+        begin
             compute_mP(`BITS16, 16);
-            #(`CYCLE*10) compute_mnP(16);
-        join
+            #(`CYCLE*5) compute_mnP(16);
+        end
         check_result(testID, err2);
         testID = testID + 1;
         $display(" ----------------------------------------------------------------------");
@@ -93,10 +92,10 @@ module Wrapper_tb;
         $display("Pattern %d. 32 bits", testID);
         $readmemh("in32_0.pattern", data_input);
         $readmemh("out32_0.pattern", data_golden);
-        fork
+        begin
             compute_mP(`BITS32, 32);
-            #(`CYCLE*10) compute_mnP(32);
-        join
+            #(`CYCLE*5) compute_mnP(32);
+        end
         check_result(testID, err3);
         testID = testID + 1;
         $display(" ----------------------------------------------------------------------");
@@ -109,10 +108,10 @@ module Wrapper_tb;
         $display("Pattern %d. 32 bits", testID);
         $readmemh("in32_1.pattern", data_input);
         $readmemh("out32_1.pattern", data_golden);
-        fork
+        begin
             compute_mP(`BITS32, 32);
-            #(`CYCLE*10) compute_mnP(32);
-        join
+            #(`CYCLE*5) compute_mnP(32);
+        end
         check_result(testID, err4);
         testID = testID + 1;
         $display(" ----------------------------------------------------------------------");
@@ -125,10 +124,10 @@ module Wrapper_tb;
         $display("Pattern %d. 64 bits", testID);
         $readmemh("in64_0.pattern", data_input);
         $readmemh("out64_0.pattern", data_golden);
-        fork
+        begin
             compute_mP(`BITS64, 64);
-            #(`CYCLE*10) compute_mnP(64);
-        join
+            #(`CYCLE*5) compute_mnP(64);
+        end
         check_result(testID, err5);
         testID = testID + 1;
         $display(" ----------------------------------------------------------------------");
@@ -141,10 +140,10 @@ module Wrapper_tb;
         $display("Pattern %d. 64 bits", testID);
         $readmemh("in64_1.pattern", data_input);
         $readmemh("out64_1.pattern", data_golden);
-        fork
+        begin
             compute_mP(`BITS64, 64);
-            #(`CYCLE*10) compute_mnP(64);
-        join
+            #(`CYCLE*5) compute_mnP(64);
+        end
         check_result(testID, err6);
         testID = testID + 1;
         $display(" ----------------------------------------------------------------------");
@@ -157,10 +156,10 @@ module Wrapper_tb;
         $display("Pattern %d. 128 bits", testID);
         $readmemh("in128_0.pattern", data_input);
         $readmemh("out128_0.pattern", data_golden);
-        fork
+        begin
             compute_mP(`BITS128, 128);
-            #(`CYCLE*10) compute_mnP(128);
-        join
+            #(`CYCLE*5) compute_mnP(128);
+        end
         check_result(testID, err7);
         testID = testID + 1;
         $display(" ----------------------------------------------------------------------");
@@ -173,10 +172,10 @@ module Wrapper_tb;
         $display("Pattern %d. 128 bits", testID);
         $readmemh("in128_1.pattern", data_input);
         $readmemh("out128_1.pattern", data_golden);
-        fork
+        begin
             compute_mP(`BITS128, 128);
-            #(`CYCLE*10) compute_mnP(128);
-        join
+            #(`CYCLE*5) compute_mnP(128);
+        end
         check_result(testID, err8);
         testID = testID + 1;
         $display(" ----------------------------------------------------------------------");
@@ -215,70 +214,69 @@ task compute_mP;
     integer i;
 
     begin
-        @(negedge clk); 
-            i_m_P_valid = 1'b1;
+        @(negedge clk);
+            i_data_valid = 1'b1; 
         @(negedge clk); 
             i_mode = mode[1];
-            i_m_P_valid = 1'b0;
+            i_data_valid = 1'b0;
         @(negedge clk); 
             i_mode = mode[0];
-    for (i=bit_num-1; i>=0; i=i-1) begin
-        @(negedge clk);
-            i_mode = 1'bx;
-            i_a = data_input[0][i]; 
-            i_b = data_input[1][i]; 
-            i_prime = data_input[2][i];
-            i_Px = data_input[3][i];
-            i_Py = data_input[4][i];
-            i_m = data_input[5][i];
-            // i_m_P_valid = 1'b1;
-	end
 
-    wait(o_mP_valid === 1'b1);
-    for(i=bit_num-1; i>=0; i=i-1) begin
-		@(negedge clk);
-		out_mPx[i] = o_mPx;
-		out_mPy[i] = o_mPy;
-	end
+        for (i=bit_num-1; i>=0; i=i-1) begin
+            @(negedge clk);
+                i_mode = 1'bx;
+                i_a = data_input[0][i]; 
+                i_b = data_input[1][i]; 
+                i_prime = data_input[2][i];
+                i_Px = data_input[3][i];
+                i_Py = data_input[4][i];
+                i_m = data_input[5][i];
+	    end
 
-    for(i=bit_num; i<`MAX_BITS; i=i+1) begin
-        out_mPx[i] = 1'b0;
-        out_mPy[i] = 1'b0;
-    end
+        wait(o_data_valid === 1'b1);
+        for(i=bit_num-1; i>=0; i=i-1) begin
+	    	@(negedge clk);
+	    	out_mPx[i] = o_Px;
+	    	out_mPy[i] = o_Px;
+	    end
 
+        for(i=bit_num; i<`MAX_BITS; i=i+1) begin
+            out_mPx[i] = 1'b0;
+            out_mPy[i] = 1'b0;
+        end
     end
 endtask
 
-    task compute_mnP;
+task compute_mnP;
     input integer bit_num;
     integer i;
 
     begin
         @(negedge clk); 
-            i_nP_valid = 1'b1;           
-    for (i=bit_num-1; i>=0; i=i-1) begin
-        @(negedge clk);
-            i_nP_valid = 1'b0;
-            i_nPx = data_input[6][i];
-            i_nPy = data_input[7][i];
-	end
+            i_data_valid = 1'b1;
+                       
+        for (i=bit_num-1; i>=0; i=i-1) begin
+            @(negedge clk);
+                i_data_valid = 1'b0;
+                i_Px = data_input[6][i];
+                i_Py = data_input[7][i];
+	    end
 
-    wait(o_mnP_valid === 1'b1);
-    for(i=bit_num-1; i>=0; i=i-1) begin
-		@(negedge clk);
-		out_mnPx[i] = o_mnPx;
-		out_mnPy[i] = o_mnPy;
-	end
+        wait(o_data_valid === 1'b1);
+        for(i=bit_num-1; i>=0; i=i-1) begin
+	    	@(negedge clk);
+	    	out_mnPx[i] = o_Px;
+	    	out_mnPy[i] = o_Py;
+	    end
 
-    for(i=bit_num; i<`MAX_BITS; i=i+1) begin
-        out_mnPx[i] = 1'b0;
-        out_mnPy[i] = 1'b0;
+        for(i=bit_num; i<`MAX_BITS; i=i+1) begin
+            out_mnPx[i] = 1'b0;
+            out_mnPy[i] = 1'b0;
+        end
     end
+endtask
 
-    end
-    endtask
-
-    task check_result;
+task check_result;
     input integer test_id;
     output integer err;
     begin
@@ -303,5 +301,6 @@ endtask
         $display("Test Pattern %d pass!", test_id);
     end
     end
-    endtask
+endtask
+
 endmodule
