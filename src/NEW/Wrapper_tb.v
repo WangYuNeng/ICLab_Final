@@ -46,8 +46,6 @@ module Wrapper_tb;
 	    err7 = 0;
 	    err8 = 0;
         testID = 1;
-        i_m_P_valid = 0;
-        i_nP_valid = 0;
 // -----------------------------------------------------------------------------------------------
         $display(" ----------------------------------------------------------------------");
         $display("TEST START !!!");
@@ -237,7 +235,7 @@ task compute_mP;
         for(i=bit_num-1; i>=0; i=i-1) begin
 	    	@(negedge clk);
 	    	out_mPx[i] = o_Px;
-	    	out_mPy[i] = o_Px;
+	    	out_mPy[i] = o_Py;
 	    end
 
         for(i=bit_num; i<`MAX_BITS; i=i+1) begin
