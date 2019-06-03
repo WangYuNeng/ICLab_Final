@@ -1,7 +1,7 @@
 `ifndef _ECCDefine_VH_
 `define _ECCDefine_VH_
 
-`define MAX_BITS 128
+`define MAX_BITS 130
 `define MAX_REG  6  // lg(MAX_BITS) - 1
 
 // operating mode

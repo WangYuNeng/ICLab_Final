@@ -1,7 +1,7 @@
 `timescale 1ns/100ps
 `define CYCLE 20
 `define TIME_LIMIT 5000000
-`define SDFFILE    "./ECC_syn.sdf"	          // Modify your sdf file name
+`define SDFFILE    "CHIP.sdf"	          // Modify your sdf file name
 `include "ECCDefine.vh"
 
 module Wrapper_tb;
@@ -46,6 +46,7 @@ module Wrapper_tb;
 	    err7 = 0;
 	    err8 = 0;
         testID = 1;
+        i_data_valid = 0;
 // -----------------------------------------------------------------------------------------------
         $display(" ----------------------------------------------------------------------");
         $display("TEST START !!!");

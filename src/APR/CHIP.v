@@ -51102,3 +51102,80 @@ module Wrapper ( clk, rst, i_data_valid, i_mode, i_a, i_prime, i_Pointx,
         n1252), .O(n90) );
 endmodule
 
+module CHIP (
+	clk, 
+	rst, 
+	i_data_valid,
+       i_mode,
+       i_a,
+       i_prime,
+       i_Pointx,
+       i_Pointy,
+       i_mul,
+       o_data_valid,
+       o_Pointx,
+       o_Pointy
+       );
+
+   input clk;
+   input rst;
+   input i_data_valid;
+   input i_mode;
+   input i_a;
+   input i_prime;
+   input i_Pointx;
+   input i_Pointy;
+   input i_mul;
+   output o_data_valid;
+   output o_Pointx;
+   output o_Pointy;
+
+
+   // Internal wires
+   wire i_clk_p_i;
+   wire i_reset_n_i;
+   wire n_logic0;
+   wire n_logic1;
+   wire i_data_valid_i;
+   wire i_mode_i;
+   wire i_a_i;
+   wire i_prime_i;
+   wire i_Pointx_i;
+   wire i_Pointy_i;
+   wire i_mul_i;
+   wire o_data_valid_o;
+   wire o_Pointx_o;
+   wire o_Pointy_o;
+
+   Wrapper wrapper_in( 
+       .clk(i_clk_p_i),
+       .rst(i_reset_n_i),
+       .i_data_valid(i_data_valid_i), 
+       .i_mode(i_mode_i), 
+       .i_a(i_a_i), 
+       .i_prime(i_prime_i),  
+       .i_Pointx(i_Pointx_i), 
+       .i_Pointy(i_Pointy_i), 
+       .i_mul(i_mul_i), 
+       .o_data_valid(o_data_valid_o), 
+       .o_Pointx(o_Pointx_o), 
+       .o_Pointy(o_Pointy_o)
+       );
+  TIE0 ipad_n_logic0(.O(n_logic0));
+  TIE1 ipad_n_logic1(.O(n_logic1));
+  XMD ipad_clk_p_i (.O(i_clk_p_i), .I(clk), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_reset_n_i (.O(i_reset_n_i), .I(rst), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_data_valid (.O(i_data_valid_i), .I(i_data_valid), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_mode (.O(i_mode_i), .I(i_mode), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_a (.O(i_a_i), .I(i_a), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_prime (.O(i_prime_i), .I(i_prime), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_mul (.O(i_mul_i), .I(i_mul), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_Pointx (.O(i_Pointx_i), .I(i_Pointx), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  XMD ipad_i_Pointy (.O(i_Pointy_i), .I(i_Pointy), .PU(n_logic0), .PD(n_logic0), .SMT(n_logic0));
+  
+  YA2GSD ipad_o_data_valid (.O(o_data_valid), .I(o_data_valid_o), .E(n_logic1), .E2(n_logic0), .E4(n_logic0), .E8(n_logic0), .SR(n_logic0));
+  YA2GSD ipad_o_Pointx (.O(o_Pointx), .I(o_Pointx_o), .E(n_logic1), .E2(n_logic0), .E4(n_logic0), .E8(n_logic0), .SR(n_logic0));
+  YA2GSD ipad_o_Pointy (.O(o_Pointy), .I(o_Pointy_o), .E(n_logic1), .E2(n_logic0), .E4(n_logic0), .E8(n_logic0), .SR(n_logic0));
+  
+  
+endmodule
